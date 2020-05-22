@@ -1,6 +1,6 @@
 class SpaceModel {
 	constructor(obj) {
-		this.roonName = obj.nameT[0].content || '',
+		this.roomName = obj.nameT[0].content || '',
 		this.spaceId = obj.spaceId
 	}
 }

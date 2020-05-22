@@ -92,17 +92,57 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _default =
+/* WEBPACK VAR INJECTION */(function(uni) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _default =
 {
   onLaunch: function onLaunch() {
     console.log('App Launch');
+    console.log(uni.getSystemInfoSync());
+    // 获取当前的设备信息
+    var systemInfo = uni.getSystemInfoSync();
+    console.log(systemInfo);
+    this.globalData.statusBarHeight = systemInfo.statusBarHeight;
+    // 如果是iOS设备
+    if (systemInfo.system.indexOf('iOS') != -1) {
+      this.globalData.contentBarHeight = 44;
+      this.globalData.navigationBarHeight = 44 + systemInfo.statusBarHeight;
+      if (systemInfo.screenHeight >= 812) {
+        this.globalData.iPhoneX = true;
+        this.globalData.bottom = 34;
+      } else {
+        this.globalData.iPhoneX = false;
+        this.globalData.bottom = 0;
+      }
+    } else {
+      this.globalData.iPhoneX = false;
+      this.globalData.bottom = 0;
+      this.globalData.contentBarHeight = 48;
+      this.globalData.navigationBarHeight = 48 + systemInfo.statusBarHeight;
+    }
+    this.globalData.screenHeight = systemInfo.screenHeight;
+    this.globalData.screenWidth = systemInfo.screenWidth;
   },
   onShow: function onShow() {
     console.log('App Show');
   },
   onHide: function onHide() {
     console.log('App Hide');
-  } };exports.default = _default;
+  },
+  globalData: {
+    // 状态栏的高度
+    statusBarHeight: 0,
+    // 导航栏的内容高度
+    contentBarHeight: 0,
+    // 导航栏的整体高度
+    navigationBarHeight: 0,
+    // 整个手机屏幕的高度
+    screenHeight: 0,
+    // 整个手机屏幕的宽度
+    screenWidth: 0,
+    // 底部安全
+    bottom: 0,
+    // 是否是iPhoneX
+    iPhoneX: false } };exports.default = _default;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))
 
 /***/ }),
 /* 8 */

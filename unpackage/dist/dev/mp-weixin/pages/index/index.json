@@ -1,7 +1,10 @@
 {
-  "navigationBarTitleText": "IoT",
+  "navigationStyle": "custom",
+  "disableScroll": true,
   "usingComponents": {
-    "uni-grid": "/components/uni-grid/uni-grid",
-    "uni-grid-item": "/components/uni-grid-item/uni-grid-item"
+    "van-grid": "/wxcomponents/vant-weapp/grid/index",
+    "van-grid-item": "/wxcomponents/vant-weapp/grid-item/index",
+    "van-dropdown-menu": "/wxcomponents/vant-weapp/dropdown-menu/index",
+    "van-dropdown-item": "/wxcomponents/vant-weapp/dropdown-item/index"
   }
 }

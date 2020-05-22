@@ -18,6 +18,7 @@ class DeviceModel {
 		this.typeC = obj.typeC
 		this.version = obj.version
 		this.zoneId = obj.zoneId
+		this.iconC = obj.iconC
 		this.controls = obj.controls.map((control) => new DeviceControlModel(control))
 	}
 }

@@ -87,7 +87,7 @@
 					typeC: 'login'
 				}
 				uni.request({
-					url: 'https://uat-gateway.stey.com/stey-service/security/v2/vercode',
+					url: 'https://gateway.stey.com/stey-service/security/v2/vercode',
 					method: 'POST',
 					data: {
 						data: param,
@@ -143,7 +143,7 @@
 					accessPortal: 'mobile_app'
 				}
 				uni.request({
-					url: 'https://uat-gateway.stey.com/auth-service/auth/login',
+					url: 'https://gateway.stey.com/auth-service/auth/login',
 					method: 'POST',
 					data: {
 						data: param,
