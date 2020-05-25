@@ -107,14 +107,14 @@ __webpack_require__.r(__webpack_exports__);
       this.globalData.navigationBarHeight = 44 + systemInfo.statusBarHeight;
       if (systemInfo.screenHeight >= 812) {
         this.globalData.iPhoneX = true;
-        this.globalData.bottom = 34;
+        this.globalData.bottomArea = 34;
       } else {
         this.globalData.iPhoneX = false;
-        this.globalData.bottom = 0;
+        this.globalData.bottomArea = 0;
       }
     } else {
       this.globalData.iPhoneX = false;
-      this.globalData.bottom = 0;
+      this.globalData.bottomArea = 0;
       this.globalData.contentBarHeight = 48;
       this.globalData.navigationBarHeight = 48 + systemInfo.statusBarHeight;
     }
@@ -139,7 +139,7 @@ __webpack_require__.r(__webpack_exports__);
     // 整个手机屏幕的宽度
     screenWidth: 0,
     // 底部安全
-    bottom: 0,
+    bottomArea: 0,
     // 是否是iPhoneX
     iPhoneX: false } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))

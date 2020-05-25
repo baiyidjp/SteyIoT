@@ -1,10 +1,10 @@
 {
   "navigationStyle": "custom",
-  "disableScroll": true,
   "usingComponents": {
     "van-grid": "/wxcomponents/vant-weapp/grid/index",
     "van-grid-item": "/wxcomponents/vant-weapp/grid-item/index",
     "van-dropdown-menu": "/wxcomponents/vant-weapp/dropdown-menu/index",
-    "van-dropdown-item": "/wxcomponents/vant-weapp/dropdown-item/index"
+    "van-dropdown-item": "/wxcomponents/vant-weapp/dropdown-item/index",
+    "device-item": "/pages/index/components/device-item"
   }
 }

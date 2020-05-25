@@ -1,29 +1,21 @@
 <template>
-	<view class="container" :style="{marginTop: statusBarHeight}">
+	<view class="container" :style="{paddingBottom: bottomArea}">
 		<view v-if="isLogin">
-			<van-dropdown-menu active-color="#5a2b81">
-				<van-dropdown-item :value="currentRoomValue" :options="roomNameValues"></van-dropdown-item>
-			</van-dropdown-menu>
-			<scroll-view scroll-y="true" :show-scrollbar="true" :style="{height: scrollViewHeight}">
+			<view class="van-dropdowm-container" :style="{paddingTop: statusBarHeight}">
+				<van-dropdown-menu active-color="#5a2b81" :z-index="dropdownMenuIndex">
+					<van-dropdown-item :value="currentRoomValue" :options="roomNameValues" @change="tapCurrentRoom"></van-dropdown-item>
+				</van-dropdown-menu>
+			</view>
+			<view :style="{marginTop: navigationBarHeight}">
 				<view class="zone-section-container" v-for="(zone, zoneIndex) in roomZones" :key="zone.zoneId">
 					<view class="zone-section-title">{{ zone.zoneName }}</view>
-					<van-grid :column-num="gridColumn" gutter="12rpx" custom-class="grid-container">
+					<van-grid :column-num="gridColumn" gutter="6px" custom-class="grid-container">
 						<van-grid-item use-slot content-class="grid-item-content" v-for="(device, deviceIndex) in zone.devices" :key="device.zoneDeviceId">
-							<view class="zone-device-container" @click="deviceItemClick(deviceIndex)">
-								<view class="device-left">
-									<image class="device-image" src="/static/images/icon_light_off.png" mode=""></image>
-									<text class="state-text">已关闭</text>
-									<text class="device-name">{{ device.deviceName }}</text>
-								</view>
-								<view class="device-right">
-									<view class="switch-color"></view>
-									<image class="setting-image" src="/static/images/icon_settings.png" mode=""></image>
-								</view>
-							</view>
+							<device-item style="width: 100%;" :device="device" @itemclick="deviceItemClick()"></device-item>
 						</van-grid-item>
 					</van-grid>
 				</view>
-			</scroll-view>
+			</view>
 		</view>
 		<view v-else class="login-container">
 			<view>{{ loginTip }}</view>
@@ -34,13 +26,16 @@
 
 <script>
 	import { mapState, mapMutations } from 'vuex'
-	import SpaceModel from './space-model.js'
-	import RoomZoneModel from './room-zone.js'
+	import SpaceModel from './js/space-model.js'
+	import RoomZoneModel from './js/room-zone.js'
+	import SocketModel from './js/socket-model.js'
+	import DeviceItem from './components/device-item.vue'
 	export default {
 		data() {
 			return {
 				statusBarHeight: '0px',
-				scrollViewHeight: '0px',
+				navigationBarHeight: '0px',
+				bottomArea: '6px',
 				loginTip: '当前未登录',
 				gridColumn: 2,
 				roomNameValues: [],
@@ -48,15 +43,45 @@
 				roomZones: []
 			}
 		},
+		components: {
+			DeviceItem
+		},
 		onLoad() {
 			this.statusBarHeight = `${getApp().globalData.statusBarHeight}px`
-			const scrollHeight = getApp().globalData.screenHeight - getApp().globalData.statusBarHeight - getApp().globalData.bottom - 44
-			this.scrollViewHeight = `${scrollHeight}px`
+			this.navigationBarHeight = `${getApp().globalData.navigationBarHeight}px`
+			let bottomArea = getApp().globalData.bottomArea > 0 ? getApp().globalData.bottomArea : 6
+			this.bottomArea = `${bottomArea}px`
+			// websocket 回调
+			uni.onSocketOpen(function(){
+				console.log('WebSocket连接已打开！');
+				// 向服务器发送token
+				let data = {
+					'data': {
+						token: uni.getStorageSync('token')
+					},
+					'timestamp': Date.now()
+				}
+				uni.sendSocketMessage({
+					data: JSON.stringify(data)
+				})
+			})
+			uni.onSocketError(function(){
+				console.log('WebSocket连接打开失败！');
+			})
+			uni.onSocketMessage((res) => {
+				this.handleSocketMeesage(res.data)
+			})
+			uni.onSocketClose(function (res) {
+			  console.log('WebSocket 已关闭！');
+			})
 		},
 		onShow() {
 			if (this.isLogin) {
 				this.requestAccessibleSpaces()
 			}
+		},
+		onHide() {
+			uni.closeSocket()
 		},
 		computed: {
 			...mapState(['isLogin'])
@@ -68,8 +93,9 @@
 					url:'../login/login'
 				})
 			},
-			tapCurrentRoom() {
-				
+			tapCurrentRoom(event) {
+				this.currentRoomValue = event.detail
+				this.requestIoTTemplate()
 			},
 			requestAccessibleSpaces() {
 				// 请求spaces信息
@@ -120,15 +146,20 @@
 					})
 					this.requestIoTTemplate()
 				} else {
-					this.currentRoomValue = 18
+					this.currentRoomValue = 138
 					this.roomNameValues = [
-						{text: '502', value: 18}
+						{text: '520', value: 138},
+						{text: '521', value: 142}
 					]
 					this.requestIoTTemplate()
 				}
 			},
-			requestIoTTemplate(spaceId) {
+			requestIoTTemplate() {
 				if (this.currentRoomValue) {
+					uni.showLoading({
+						title:'',
+						mask: true
+					})
 					uni.request({
 						url: `https://gateway.stey.com/iot-service/staff-app/iot/template/${this.currentRoomValue}`,
 						method: 'GET',
@@ -163,6 +194,9 @@
 								title: '网络请求失败',
 								duration: 2000
 							})
+						},
+						complete() {
+							uni.hideLoading()
 						}
 					})
 				}
@@ -173,9 +207,79 @@
 				const roomZones = zones.map((zone) => new RoomZoneModel(zone)).filter((item) => !item.isSystemZone)
 				this.roomZones = roomZones
 				console.log(roomZones)
+				//打开websocket
+				this.connectSocket()
 			},
-			deviceItemClick(index) {
-				console.log(index)
+			connectSocket() {
+				uni.connectSocket({
+					url: `wss://gateway.stey.com/iot-service/app/iot/connect/${this.currentRoomValue}`,
+				})
+			},
+			handleSocketMeesage(data) {
+				const obj = JSON.parse(data)
+				const socketModel = new SocketModel(obj)
+				this.roomZones.forEach((zone) => {
+					const deviceModel = zone.devices.filter((device) => device.zoneDeviceId === socketModel.zoneDeviceId)[0]
+					if (deviceModel) {
+						const controlModel = deviceModel.controls.filter((control) => control.zoneDeviceControlId === socketModel.zoneDeviceControlId)[0]
+						if (controlModel) {
+							controlModel.value = socketModel.value
+							console.log(socketModel);
+						}
+					}
+				})
+			},
+			deviceItemClick(obj) {
+				uni.showLoading({
+					title: '发送中',
+					mask: true
+				})
+				let socketObj = {
+					'spaceId': this.currentRoomValue,
+					...obj
+				}
+				uni.request({
+					url: 'https://gateway.stey.com/iot-service/staff-app/iot/run-command',
+					method: 'POST',
+					data: {
+						data: socketObj,
+						timestamp: Date.now()
+					},
+					header: {
+						'Content-Type': 'application/json; charset=utf-8',
+						'Authorization': `Bearer ${uni.getStorageSync('token')}`,
+						'Accept-Language': 'zh'
+					},
+					success: res => {
+						console.log(res);
+						if (res.statusCode == 200) {
+							console.log(res.data)
+						} else if (res.statusCode == 401) {
+							console.log('token失效')
+							this.logout()
+							this.loginTip = '登录失效'
+						} else {
+							const error = res.data.error
+							if (error) {
+								uni.showToast({
+									icon: 'none',
+									title: error,
+									duration: 2000
+								});
+							}
+						}
+					},
+					fail: () => {
+						uni.showToast({
+							icon: 'none',
+							title: '网络请求失败',
+							duration: 2000
+						})
+					},
+					complete() {
+						uni.hideLoading()
+					}
+				})
 			}
 		}
 	}
@@ -183,17 +287,15 @@
 
 <style lang="scss">
 	page {
-		height: 100%;
-		background-color: #FAFAFA;
+		background-color: $uni-color-bgc;
 	}
 	.container {
-		height: 100%;
 		display: flex;
 		flex-direction: column;
-		background-color: #F0F0F0;
+		background-color: $uni-color-bgc;
 	}
 	.login-container {
-		height: 100%;
+		margin-top: 300px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -208,12 +310,20 @@
 		flex-shrink: 1;
 		border-radius: 8rpx;
 		font-size: 14px;
-		color: #FFFFFF;
+		color: $uni-color-bgc;
 		text-align: center;
 		margin: 40rpx 180rpx;
 	}
+	.van-dropdowm-container {
+		background-color: $uni-color-nav;
+		position: fixed;
+		left: 0;
+		right: 0;
+		top: 0;
+		z-index: 99;
+	}
 	.van-dropdown-menu {
-		background-color: #FAFAFA !important;
+		background-color: $uni-color-nav !important;
 		font-size: 20px !important;
 		color: #000000 !important;
 		font-weight: bold !important;
@@ -225,7 +335,7 @@
 		padding: 0 32rpx;
 	}
 	.zone-section-title {
-		color: #4A4A4A;
+		color: $uni-text-color;
 		font-size: 12px;
 		font-weight: bold;
 		height: 38px;
@@ -237,52 +347,6 @@
 	.grid-item-content {
 		padding: 0 !important;
 		color: transparent !important;
-	}
-	.zone-device-container {
-		background-color: #DCDCDC;
-		height: 164rpx;
-		width: 100%;
-		border-radius: 8rpx;
-		display: flex;
-		justify-content: space-between;
-	}
-	.device-left {
-		display: flex;
-		flex-direction: column;
-	}
-	.device-image {
-		width: 60rpx;
-		height: 60rpx;
-		margin: 18rpx 0 10rpx 18rpx;
-	}
-	.state-text {
-		color: #9B9B9B;
-		font-size: 10px;
-		margin-left: 24rpx;
-	}
-	.device-name {
-		color: #000000;
-		font-size: 12px;
-		font-weight: bold;
-		margin: 8rpx 0 0 24rpx;
-	}
-	.device-right {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		align-items: flex-end;
-	}
-	.switch-color {
-		width: 12rpx;
-		height: 12rpx;
-		border-radius: 6rpx;
-		background-color: #9B9B9B;
-		margin: 20rpx 20rpx 0 0;
-	}
-	.setting-image {
-		width: 60rpx;
-		height: 60rpx;
-		margin: 0 8rpx 8rpx 0;
 	}
 	
 </style>
