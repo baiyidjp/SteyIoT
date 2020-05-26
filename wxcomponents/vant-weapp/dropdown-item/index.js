@@ -77,7 +77,7 @@ VantComponent({
       const { option } = event.currentTarget.dataset;
       const { value } = option;
       const shouldEmitChange = this.data.value !== value;
-      this.setData({ showPopup: false, value });
+      this.setData({ showPopup: false, showWrapper: false, value });
       this.$emit('close');
       this.rerender();
       if (shouldEmitChange) {

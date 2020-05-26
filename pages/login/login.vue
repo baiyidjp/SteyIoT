@@ -31,7 +31,7 @@
 				verificationCode : '',
 				codeButtonText: '发送',
 				timer: null,
-				seconds: 10,
+				seconds: 60,
 				isTimeDown: false,
 				codeButtonDisabled: true,
 				loginButtonDisabled: true
@@ -158,6 +158,7 @@
 						if (res.statusCode == 200) {
 							const token = res.data.data.accessToken
 							uni.setStorageSync('token', token)
+							uni.setStorageSync('haveLogin', true)
 							// 提交
 							this.login()
 							uni.showToast({

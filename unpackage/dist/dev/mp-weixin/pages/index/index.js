@@ -179,19 +179,30 @@ var _socketModel = _interopRequireDefault(__webpack_require__(/*! ./js/socket-mo
       gridColumn: 2,
       roomNameValues: [],
       currentRoomValue: null,
-      roomZones: [] };
+      roomZones: [],
+      isWebSocketOpen: false };
 
   },
   components: {
     DeviceItem: DeviceItem },
 
   onLoad: function onLoad() {var _this = this;
+    // 计算
     this.statusBarHeight = "".concat(getApp().globalData.statusBarHeight, "px");
     this.navigationBarHeight = "".concat(getApp().globalData.navigationBarHeight, "px");
     var bottomArea = getApp().globalData.bottomArea > 0 ? getApp().globalData.bottomArea : 6;
     this.bottomArea = "".concat(bottomArea, "px");
+    // 接收全局登录事件
+    uni.$on('haveLogin', function () {
+      _this.requestAccessibleSpaces();
+    });
+    // 获取房间
+    if (this.isLogin) {
+      this.requestAccessibleSpaces();
+    }
     // websocket 回调
     uni.onSocketOpen(function () {
+      _this.isWebSocketOpen = true;
       console.log('WebSocket连接已打开！');
       // 向服务器发送token
       var data = {
@@ -211,12 +222,17 @@ var _socketModel = _interopRequireDefault(__webpack_require__(/*! ./js/socket-mo
       _this.handleSocketMeesage(res.data);
     });
     uni.onSocketClose(function (res) {
-      console.log('WebSocket 已关闭！');
+      _this.isWebSocketOpen = false;
+      console.log('WebSocket 已关闭！', res);
+      if (res.code === 1006) {
+        // 自动断 重新连
+        _this.connectSocket();
+      }
     });
   },
   onShow: function onShow() {
-    if (this.isLogin) {
-      this.requestAccessibleSpaces();
+    if (this.isLogin && this.currentRoomValue) {
+      this.connectSocket();
     }
   },
   onHide: function onHide() {
@@ -341,15 +357,16 @@ var _socketModel = _interopRequireDefault(__webpack_require__(/*! ./js/socket-mo
       }
     },
     handleTemplate: function handleTemplate(zones) {
-      console.log(zones);
       // 筛选非系统的zone
       var roomZones = zones.map(function (zone) {return new _roomZone.default(zone);}).filter(function (item) {return !item.isSystemZone;});
       this.roomZones = roomZones;
-      console.log(roomZones);
       //打开websocket
       this.connectSocket();
     },
     connectSocket: function connectSocket() {
+      if (this.isWebSocketOpen) {
+        uni.closeSocket();
+      }
       uni.connectSocket({
         url: "wss://gateway.stey.com/iot-service/app/iot/connect/".concat(this.currentRoomValue) });
 
@@ -369,6 +386,8 @@ var _socketModel = _interopRequireDefault(__webpack_require__(/*! ./js/socket-mo
       });
     },
     deviceItemClick: function deviceItemClick(obj) {var _this4 = this;
+      // 震动
+      uni.vibrateShort();
       uni.showLoading({
         title: '发送中',
         mask: true });
@@ -390,9 +409,7 @@ var _socketModel = _interopRequireDefault(__webpack_require__(/*! ./js/socket-mo
           'Accept-Language': 'zh' },
 
         success: function success(res) {
-          console.log(res);
           if (res.statusCode == 200) {
-            console.log(res.data);
           } else if (res.statusCode == 401) {
             console.log('token失效');
             _this4.logout();

@@ -2,7 +2,7 @@
 	<view class="container" :style="{paddingBottom: bottomArea}">
 		<view v-if="isLogin">
 			<view class="van-dropdowm-container" :style="{paddingTop: statusBarHeight}">
-				<van-dropdown-menu active-color="#5a2b81" :z-index="dropdownMenuIndex">
+				<van-dropdown-menu active-color="#5a2b81">
 					<van-dropdown-item :value="currentRoomValue" :options="roomNameValues" @change="tapCurrentRoom"></van-dropdown-item>
 				</van-dropdown-menu>
 			</view>
@@ -40,19 +40,30 @@
 				gridColumn: 2,
 				roomNameValues: [],
 				currentRoomValue: null,
-				roomZones: []
+				roomZones: [],
+				isWebSocketOpen: false
 			}
 		},
 		components: {
 			DeviceItem
 		},
 		onLoad() {
+			// 计算
 			this.statusBarHeight = `${getApp().globalData.statusBarHeight}px`
 			this.navigationBarHeight = `${getApp().globalData.navigationBarHeight}px`
 			let bottomArea = getApp().globalData.bottomArea > 0 ? getApp().globalData.bottomArea : 6
 			this.bottomArea = `${bottomArea}px`
+			// 接收全局登录事件
+			uni.$on('haveLogin', () => {
+				this.requestAccessibleSpaces()
+			})
+			// 获取房间
+			if (this.isLogin) {
+				this.requestAccessibleSpaces()
+			}
 			// websocket 回调
-			uni.onSocketOpen(function(){
+			uni.onSocketOpen(() => {
+				this.isWebSocketOpen = true
 				console.log('WebSocket连接已打开！');
 				// 向服务器发送token
 				let data = {
@@ -71,13 +82,18 @@
 			uni.onSocketMessage((res) => {
 				this.handleSocketMeesage(res.data)
 			})
-			uni.onSocketClose(function (res) {
-			  console.log('WebSocket 已关闭！');
+			uni.onSocketClose((res) => {
+				this.isWebSocketOpen = false
+			  console.log('WebSocket 已关闭！', res);
+				if (res.code === 1006) {
+					// 自动断 重新连
+					this.connectSocket()
+				}
 			})
 		},
 		onShow() {
-			if (this.isLogin) {
-				this.requestAccessibleSpaces()
+			if (this.isLogin && this.currentRoomValue) {
+				this.connectSocket()
 			}
 		},
 		onHide() {
@@ -202,15 +218,16 @@
 				}
 			},
 			handleTemplate(zones) {
-				console.log(zones)
 				// 筛选非系统的zone
 				const roomZones = zones.map((zone) => new RoomZoneModel(zone)).filter((item) => !item.isSystemZone)
 				this.roomZones = roomZones
-				console.log(roomZones)
 				//打开websocket
 				this.connectSocket()
 			},
 			connectSocket() {
+				if (this.isWebSocketOpen) {
+					uni.closeSocket()
+				}
 				uni.connectSocket({
 					url: `wss://gateway.stey.com/iot-service/app/iot/connect/${this.currentRoomValue}`,
 				})
@@ -230,6 +247,8 @@
 				})
 			},
 			deviceItemClick(obj) {
+				// 震动
+				uni.vibrateShort()
 				uni.showLoading({
 					title: '发送中',
 					mask: true
@@ -251,9 +270,7 @@
 						'Accept-Language': 'zh'
 					},
 					success: res => {
-						console.log(res);
 						if (res.statusCode == 200) {
-							console.log(res.data)
 						} else if (res.statusCode == 401) {
 							console.log('token失效')
 							this.logout()

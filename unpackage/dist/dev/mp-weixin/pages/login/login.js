@@ -163,7 +163,7 @@ var _vuex = __webpack_require__(/*! vuex */ 12);function ownKeys(object, enumera
       verificationCode: '',
       codeButtonText: '发送',
       timer: null,
-      seconds: 10,
+      seconds: 60,
       isTimeDown: false,
       codeButtonDisabled: true,
       loginButtonDisabled: true };
@@ -290,6 +290,7 @@ var _vuex = __webpack_require__(/*! vuex */ 12);function ownKeys(object, enumera
           if (res.statusCode == 200) {
             var token = res.data.data.accessToken;
             uni.setStorageSync('token', token);
+            uni.setStorageSync('haveLogin', true);
             // 提交
             _this2.login();
             uni.showToast({

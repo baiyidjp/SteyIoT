@@ -7783,17 +7783,19 @@ vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(vuex__WEBPACK_IMPORTED_MODULE_1_
 
 const store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
 	state: {
-		isLogin: uni.getStorageSync('token') || false,
+		isLogin: uni.getStorageSync('haveLogin') || false,
 	},
 	getters: {
 	},
 	mutations: {
 		login(state) {
 			state.isLogin = true
+			uni.$emit('haveLogin')
 		},
 		logout(state) {
 			state.isLogin = false
 			uni.removeStorageSync('token')
+			uni.removeStorageSync('haveLogin')
 		}
 	}
 })
@@ -8887,13 +8889,7 @@ SocketModel;exports.default = _default;
 /* 36 */,
 /* 37 */,
 /* 38 */,
-/* 39 */,
-/* 40 */,
-/* 41 */,
-/* 42 */,
-/* 43 */,
-/* 44 */,
-/* 45 */
+/* 39 */
 /*!**************************************************************************!*\
   !*** /Users/peng/Desktop/HX/SteyIoT/pages/index/js/device-data-model.js ***!
   \**************************************************************************/
