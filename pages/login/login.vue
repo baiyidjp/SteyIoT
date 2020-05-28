@@ -9,14 +9,20 @@
 				<uni-icons type="arrowdown" color="#5B5B5B" size="10"></uni-icons>
 				<view class="line"></view>
 			</view>
-			<input type="number" v-model="mobile" placeholder="请输入手机号" @input="mobileInput"/>
+			<input type="number" placeholder="请输入手机号" @input="mobileInput"/>
 		</view>
-		<view class="msg-code-container">
+		<view v-if="isLoginByPassword" >
 			<view class="input-container">
-				<input type="number" v-model="verificationCode" placeholder="请输入验证码" @input="verificationCodeInput"/>
+				<input :password="true" placeholder="请输入密码" @input="passwordInput"/>
+			</view>
+		</view>
+		<view v-else class="msg-code-container">
+			<view class="input-container">
+				<input type="number" placeholder="请输入验证码" @input="verificationCodeInput"/>
 			</view>
 			<view class="code-button" :class="{disabled: codeButtonDisabled}" @click="codeButtonClick">{{ codeButtonText }}</view>
 		</view>
+		<view class="change-login" @click="changeLoginClick">{{ changeLoginText }}</view>
 		<view class="login-button" :class="{disabled: loginButtonDisabled}" @click="loginButtonClick">登录</view>
 	</view>
 </template>
@@ -28,17 +34,24 @@
 			return {
 				nationCode: '86',
 				mobile: '',
+				password: '',
 				verificationCode : '',
 				codeButtonText: '发送',
 				timer: null,
 				seconds: 60,
 				isTimeDown: false,
+				isLoginByPassword: true,
 				codeButtonDisabled: true,
-				loginButtonDisabled: true
+				loginButtonDisabled: true,
+				changeLoginText: '验证码登录'
 			}
 		},
 		methods: {
 			...mapMutations(['login']),
+			changeLoginClick() {
+				this.isLoginByPassword = !this.isLoginByPassword
+				this.changeLoginText = this.isLoginByPassword ? '验证码登录' : '密码登录'
+			},
 			nationCodeClick() {
 				uni.showToast({
 					icon: 'none',
@@ -47,30 +60,51 @@
 				})
 			},
 			mobileInput(event) {
-				const value = event.detail.value
-				if (this.nationCode == '86') {
-					if (value.length == 11) {
-						this.codeButtonDisabled = false
+				// https://blog.csdn.net/weixin_43343144/article/details/101097177
+				setTimeout(() => {
+					const value = event.detail.value
+					this.mobile = value
+					if (this.nationCode == '86') {
+						if (value.length == 11) {
+							this.codeButtonDisabled = false
+						} else {
+							this.codeButtonDisabled = true
+						}
 					} else {
-						this.codeButtonDisabled = true
+						if (value.length >= 4 && value.length <= 15) {
+							this.codeButtonDisabled = false
+						} else {
+							this.codeButtonDisabled = true
+						}
 					}
-				} else {
-					if (value.length >= 4 && value.length <= 15) {
-						this.codeButtonDisabled = false
-					} else {
-						this.codeButtonDisabled = true
-					}
-				}
-				this.loginButtonAbled()
+					this.loginButtonAbled()
+				}, 0)
+			},
+			passwordInput(event) {
+				setTimeout(() => {
+					this.password = event.detail.value
+					this.loginButtonAbled()
+				}, 0)
 			},
 			verificationCodeInput(event) {
-				this.loginButtonAbled()
+				setTimeout(() => {
+					this.verificationCode = event.detail.value
+					this.loginButtonAbled()
+				}, 0)
 			},
 			loginButtonAbled() {
-				if (this.verificationCode.length == 4 && !this.codeButtonDisabled) {
-					this.loginButtonDisabled = false
+				if (this.isLoginByPassword) {
+					if (this.password.length >= 6 && this.password.length <= 18 && !this.codeButtonDisabled) {
+						this.loginButtonDisabled = false
+					} else {
+						this.loginButtonDisabled = true
+					}
 				} else {
-					this.loginButtonDisabled = true
+					if (this.verificationCode.length == 4 && !this.codeButtonDisabled) {
+						this.loginButtonDisabled = false
+					} else {
+						this.loginButtonDisabled = true
+					}
 				}
 			},
 			codeButtonClick() {
@@ -136,10 +170,12 @@
 					title: '',
 					mask: true
 				});
+				const providerId = this.isLoginByPassword ? 'mobile' : 'token'
+				const passwordOrToken = this.isLoginByPassword ? this.password : this.verificationCode
 				const param = {
 					providerKey: `${this.nationCode}-${this.mobile}`,
-					providerId: 'token',
-					passwordOrToken: this.verificationCode,
+					providerId,
+					passwordOrToken,
 					accessPortal: 'mobile_app'
 				}
 				uni.request({
@@ -240,6 +276,10 @@
 		font-size: 14px;
 		color: #FFFFFF;
 		text-align: center;
+	}
+	.change-login {
+		font-size: 14px;
+		color: #5B5B5B;
 	}
 	.login-button {
 		background-color: $uni-color-stey;

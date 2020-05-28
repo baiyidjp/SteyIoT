@@ -4,12 +4,14 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationStyle":"custom",
-				// "disableScroll": true,
 				"usingComponents": {
 					"van-grid": "/wxcomponents/vant-weapp/grid/index",
 					"van-grid-item": "/wxcomponents/vant-weapp/grid-item/index",
 					"van-dropdown-menu": "/wxcomponents/vant-weapp/dropdown-menu/index",
-					"van-dropdown-item": "/wxcomponents/vant-weapp/dropdown-item/index"
+					"van-dropdown-item": "/wxcomponents/vant-weapp/dropdown-item/index",
+					"van-popup": "/wxcomponents/vant-weapp/popup/index",
+					"van-icon": "/wxcomponents/vant-weapp/icon/index",
+					"van-slider": "/wxcomponents/vant-weapp/slider/index"
 				}
 			}
 		},
@@ -17,6 +19,12 @@
 			"path":"pages/login/login",
 			"style": {
 				"navigationBarTitleText":"登录"
+			}
+		},
+		{
+			"path":"pages/web/web-view",
+			"style": {
+				"navigationBarTitleText":"网页"
 			}
 		}
 	],

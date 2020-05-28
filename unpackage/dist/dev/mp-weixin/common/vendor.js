@@ -8845,9 +8845,18 @@ function DeviceControlModel(obj) {_classCallCheck(this, DeviceControlModel);
   this.controlName = obj.nameT[0].content || '';
   this.tag = obj.tag;
   this.zoneDeviceId = obj.zoneDeviceId;
-  this.minValue = obj.minValue;
-  this.maxValue = obj.maxValue;
   this.valueBound = obj.valueBound;
+  if (obj.valueBound) {
+    var valueBound = obj.valueBound;
+    var values = valueBound.split('-');
+    if (values.length === 2) {
+      this.minValue = parseFloat(values[0]);
+      this.maxValue = parseFloat(values[1]);
+    }
+  } else {
+    this.minValue = Number.MIN_SAFE_INTEGER;
+    this.maxValue = Number.MAX_SAFE_INTEGER;
+  }
 };var _default =
 
 
@@ -8855,41 +8864,6 @@ DeviceControlModel;exports.default = _default;
 
 /***/ }),
 /* 23 */
-/*!*********************************************************************!*\
-  !*** /Users/peng/Desktop/HX/SteyIoT/pages/index/js/socket-model.js ***!
-  \*********************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}var SocketModel =
-function SocketModel(obj) {_classCallCheck(this, SocketModel);
-  this.spaceId = obj.spaceId;
-  this.zoneDeviceId = obj.zoneDeviceId;
-  this.zoneDeviceControlId = obj.zoneDeviceControlId;
-  this.value = obj.value;
-};var _default =
-
-
-SocketModel;exports.default = _default;
-
-/***/ }),
-/* 24 */,
-/* 25 */,
-/* 26 */,
-/* 27 */,
-/* 28 */,
-/* 29 */,
-/* 30 */,
-/* 31 */,
-/* 32 */,
-/* 33 */,
-/* 34 */,
-/* 35 */,
-/* 36 */,
-/* 37 */,
-/* 38 */,
-/* 39 */
 /*!**************************************************************************!*\
   !*** /Users/peng/Desktop/HX/SteyIoT/pages/index/js/device-data-model.js ***!
   \**************************************************************************/
@@ -8901,20 +8875,38 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 var _controlModel = _interopRequireDefault(__webpack_require__(/*! ./control-model.js */ 22));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);return Constructor;}var
 
 DeviceDataModel = /*#__PURE__*/function () {
-  function DeviceDataModel(device) {_classCallCheck(this, DeviceDataModel);
+  function DeviceDataModel(device) {var _device$iconC;_classCallCheck(this, DeviceDataModel);
     this.device = device;
     this.showDeviceSwitchColor = true;
-    this.showDeviceSetting = false;
+    this.showDeviceSetting = true;
+    this.dimmerValue = 0;
     switch (device.typeC) {
       case 'onekeyswitch':
-        this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false,
-        this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭',
+        this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
+        this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
         this.showDeviceSetting = false;
         break;
       case 'dimmingcontrol':
-        this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false,
-        this.deviceShowTitle = this.isDeviceOn ? this.deviceControlModel(20).value : '已关闭';
+        this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
+        var sliderControlModel = this.deviceControlModel(20);
+        var sliderValueFloat = sliderControlModel.value ? parseFloat(sliderControlModel.value) : sliderControlModel.minValue;
+        if (!sliderControlModel.value || sliderValueFloat < sliderControlModel.minValue) {
+          sliderControlModel.value = "".concat(sliderControlModel.minValue);
+        }
+        if (sliderValueFloat > sliderControlModel.maxValue) {
+          sliderControlModel.value = "".concat(sliderControlModel.maxValue);
+        }
+        var controlValue = sliderControlModel.value ? parseFloat(sliderControlModel.value) : sliderControlModel.minValue;
+        var sliderValue = (controlValue - sliderControlModel.minValue) / (sliderControlModel.maxValue - sliderControlModel.minValue);
+        var valueInt = parseInt(sliderValue * 100);
+        var sliderValueInt = parseInt(this.dimmerValue * 100);
+        var showTitle = "".concat(valueInt, "%");
+        if (Math.abs(sliderValueInt - valueInt) <= 4) {
+          showTitle = "".concat(sliderValueInt, "%");
+        }
+        this.deviceShowTitle = this.isDeviceOn ? showTitle : '已关闭';
         break;
+
       case 'curtaincontrol':
         var openControlModel = this.deviceControlModel(10);
         var pauseControlModel = this.deviceControlModel(20);
@@ -8929,7 +8921,7 @@ DeviceDataModel = /*#__PURE__*/function () {
         } else {
           this.isDeviceOn = false;
         }
-        this.deviceShowTitle = '';
+        this.deviceShowTitle = ' ';
         this.showDeviceSwitchColor = false;
         break;
       case 'airconditionercontrol':
@@ -8951,7 +8943,7 @@ DeviceDataModel = /*#__PURE__*/function () {
         this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
         break;}
 
-    var iconC = device.iconC;
+    var iconC = (_device$iconC = device.iconC) !== null && _device$iconC !== void 0 ? _device$iconC : '';
     if (iconC.indexOf('lamp') != -1) {
       iconC = 'ceilinglamp';
     }
@@ -8969,6 +8961,26 @@ DeviceDataModel = /*#__PURE__*/function () {
 
 
 DeviceDataModel;exports.default = _default;
+
+/***/ }),
+/* 24 */
+/*!*********************************************************************!*\
+  !*** /Users/peng/Desktop/HX/SteyIoT/pages/index/js/socket-model.js ***!
+  \*********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}var SocketModel =
+function SocketModel(obj) {_classCallCheck(this, SocketModel);
+  this.spaceId = obj.spaceId;
+  this.zoneDeviceId = obj.zoneDeviceId;
+  this.zoneDeviceControlId = obj.zoneDeviceControlId;
+  this.value = obj.value;
+};var _default =
+
+
+SocketModel;exports.default = _default;
 
 /***/ })
 ]]);

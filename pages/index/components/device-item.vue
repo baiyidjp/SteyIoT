@@ -5,9 +5,12 @@
 			<text class="state-text" :style="{color: switchColor}">{{ deviceTitle }}</text>
 			<text class="device-name">{{ device.deviceName }}</text>
 		</view>
-		<view class="device-right">
-			<view v-show="deviceDataModel.showDeviceSwitchColor" class="switch-color" :style="{backgroundColor: switchColor}"></view>
-			<image v-if="deviceDataModel.showDeviceSetting" class="setting-image" src="/static/images/icon_settings.png" mode=""></image>
+		<view v-if="deviceDataModel.showDeviceSwitchColor" class="device-right">
+			<view class="switch-color" :style="{backgroundColor: switchColor}"></view>
+			<image v-if="deviceDataModel.showDeviceSetting" class="setting-image" src="/static/images/icon_settings.png" @click.stop="settingButtonClick"></image>
+		</view>
+		<view v-else class="device-right-setting">
+			<image class="setting-image" src="/static/images/icon_settings.png" @click.stop="settingButtonClick"></image>
 		</view>
 	</view>
 </template>
@@ -53,6 +56,9 @@
 					'zoneDeviceControlId': controlId,
 				}
 				this.$emit('itemclick', obj)
+			},
+			settingButtonClick() {
+				this.$emit('settingclick', this.deviceDataModel)
 			}
 		},
 	}
@@ -78,6 +84,7 @@
 	.state-text {
 		font-size: 10px;
 		margin-left: 24rpx;
+		height: 14px;
 	}
 	.device-name {
 		color: #000000;
@@ -90,6 +97,11 @@
 		flex-direction: column;
 		justify-content: space-between;
 		align-items: flex-end;
+	}
+	.device-right-setting {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
 	}
 	.switch-color {
 		width: 12rpx;

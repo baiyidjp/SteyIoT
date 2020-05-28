@@ -7,9 +7,18 @@ class DeviceControlModel {
 		this.controlName = obj.nameT[0].content || ''
 		this.tag = obj.tag
 		this.zoneDeviceId = obj.zoneDeviceId
-		this.minValue = obj.minValue
-		this.maxValue = obj.maxValue
 		this.valueBound = obj.valueBound
+		if (obj.valueBound) {
+			const valueBound = obj.valueBound
+			const values = valueBound.split('-')
+			if (values.length === 2) {
+				this.minValue = parseFloat(values[0])
+				this.maxValue = parseFloat(values[1])
+			}
+		} else {
+			this.minValue = Number.MIN_SAFE_INTEGER
+			this.maxValue = Number.MAX_SAFE_INTEGER
+		}
 	}
 }
 

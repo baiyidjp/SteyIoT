@@ -1,26 +1,55 @@
 <template>
-	<view class="container" :style="{paddingBottom: bottomArea}">
-		<view v-if="isLogin">
-			<view class="van-dropdowm-container" :style="{paddingTop: statusBarHeight}">
-				<van-dropdown-menu active-color="#5a2b81">
-					<van-dropdown-item :value="currentRoomValue" :options="roomNameValues" @change="tapCurrentRoom"></van-dropdown-item>
-				</van-dropdown-menu>
-			</view>
-			<view :style="{marginTop: navigationBarHeight}">
-				<view class="zone-section-container" v-for="(zone, zoneIndex) in roomZones" :key="zone.zoneId">
-					<view class="zone-section-title">{{ zone.zoneName }}</view>
-					<van-grid :column-num="gridColumn" gutter="6px" custom-class="grid-container">
-						<van-grid-item use-slot content-class="grid-item-content" v-for="(device, deviceIndex) in zone.devices" :key="device.zoneDeviceId">
-							<device-item style="width: 100%;" :device="device" @itemclick="deviceItemClick()"></device-item>
-						</van-grid-item>
-					</van-grid>
+	<view class="container" :style="{paddingBottom: bottomArea + 'px'}">
+		<block v-if="isLogin">
+			<block v-if="roomNameValues.length > 0">
+				<view class="van-dropdowm-container" :style="{paddingTop: statusBarHeight + 'px'}">
+					<van-dropdown-menu active-color="#5a2b81">
+						<van-dropdown-item :value="currentRoomValue" :options="roomNameValues" @change="tapCurrentRoom"></van-dropdown-item>
+					</van-dropdown-menu>
 				</view>
+				<view :style="{marginTop: navigationBarHeight + 'px'}">
+					<view class="zone-section-container" v-for="(zone, zoneIndex) in roomZones" :key="zone.zoneId">
+						<view class="zone-section-title">{{ zone.zoneName }}</view>
+						<van-grid :column-num="gridColumn" gutter="6px" custom-class="grid-container">
+							<van-grid-item use-slot content-class="grid-item-content" v-for="(device, deviceIndex) in zone.devices" :key="device.zoneDeviceId">
+								<device-item style="width: 100%;" :device="device" @itemclick="deviceItemClick()" @settingclick="deviceSettingClick()"></device-item>
+							</van-grid-item>
+						</van-grid>
+					</view>
+				</view>
+			</block>
+			<view v-else v-show="isRequestSpacesDone" class="login-container">
+				<view>暂无订单</view>
+				<view class="login-button" @click="bookingButtonClick">点我预定</view>
 			</view>
-		</view>
+		</block>
 		<view v-else class="login-container">
 			<view>{{ loginTip }}</view>
 			<view class="login-button" @click="loginButtonClick">点我登录</view>
 		</view>
+		<van-popup :show="showPop">
+			<view class="pop-back">
+				<view class="pop-top">
+					<view class="pop-close" :style="{marginTop: (statusBarHeight + 10) + 'px'}">
+						<van-icon name="close" size="32px" color="#FFFFFF" @click="popUpClose"/>
+					</view>
+					<image class="pop-device-image" :src="popDeviceImage" mode=""></image>
+				</view>
+				<view class="pop-middle">
+					<view class="pop-device-dimmer-container">
+						<view class="dimmer-value">{{ dimmerValue }}%</view>
+						<view class="pop-slider-container">
+							<van-slider :value="dimmerValue" bar-height="12px" active-color="#FFFFFF" inactive-color="#333333" @drag="sliderValueChange"/>
+						</view>
+					</view>
+				</view>
+				<view class="pop-bottom">
+					<image class="switch-button" :src="switchImage" mode=""></image>
+					<view class="device-name">{{ deviceName }}</view>
+					<view class="switch-state">{{ switchState }}</view>
+				</view>
+			</view>
+		</van-popup>
 	</view>
 </template>
 
@@ -30,35 +59,48 @@
 	import RoomZoneModel from './js/room-zone.js'
 	import SocketModel from './js/socket-model.js'
 	import DeviceItem from './components/device-item.vue'
+	import DeviceDimmerSetting from './components/device-dimmer-setting.vue'
+	import DeviceCurtainSetting from './components/device-curtain-setting.vue'
+	import DeviceAirConditionerSetting from './components/device-air-conditioner-setting.vue'
+	import DeviceAirPurifierSetting from './components/device-air-purifier-setting.vue'
+	
 	export default {
 		data() {
 			return {
-				statusBarHeight: '0px',
-				navigationBarHeight: '0px',
-				bottomArea: '6px',
+				statusBarHeight: 20,
+				navigationBarHeight: 64,
+				bottomArea: 6,
 				loginTip: '当前未登录',
 				gridColumn: 2,
 				roomNameValues: [],
 				currentRoomValue: null,
 				roomZones: [],
-				isWebSocketOpen: false
+				isWebSocketOpen: false,
+				isRequestSpacesDone: false,
+				currentDeviceDataModel: null,
+				showPop: false,
+				dimmerValue: 0,
 			}
 		},
 		components: {
-			DeviceItem
+			DeviceItem,
+			DeviceDimmerSetting,
+			DeviceCurtainSetting,
+			DeviceAirConditionerSetting,
+			DeviceAirPurifierSetting
 		},
 		onLoad() {
 			// 计算
-			this.statusBarHeight = `${getApp().globalData.statusBarHeight}px`
-			this.navigationBarHeight = `${getApp().globalData.navigationBarHeight}px`
-			let bottomArea = getApp().globalData.bottomArea > 0 ? getApp().globalData.bottomArea : 6
-			this.bottomArea = `${bottomArea}px`
+			this.statusBarHeight = getApp().globalData.statusBarHeight
+			this.navigationBarHeight = getApp().globalData.navigationBarHeight
+			this.bottomArea = getApp().globalData.bottomArea > 0 ? getApp().globalData.bottomArea : 6
 			// 接收全局登录事件
 			uni.$on('haveLogin', () => {
 				this.requestAccessibleSpaces()
 			})
 			// 获取房间
 			if (this.isLogin) {
+				console.log(this.isLogin);
 				this.requestAccessibleSpaces()
 			}
 			// websocket 回调
@@ -100,13 +142,57 @@
 			uni.closeSocket()
 		},
 		computed: {
-			...mapState(['isLogin'])
+			...mapState(['isLogin']),
+			popDeviceImage() {
+				if (this.currentDeviceDataModel) {
+					console.log(this.currentDeviceDataModel);
+					switch (this.currentDeviceDataModel.device.typeC) {
+						case 'dimmingcontrol':
+						return '../../static/images/stey_ioticon_editceilinglamp.png'
+						break;
+						case 'curtaincontrol':
+						return '../../static/images/stey_ioticon_editcurtain.png'
+						break;
+						case 'airconditionercontrol':
+						return '../../static/images/stey_ioticon_editairconditioner.png'
+						break;
+						case 'airpurifiercontrol':
+						return '../../static/images/stey_ioticon_editairquality.png'
+						break;
+					}
+				} 
+				return ''
+			},
+			switchImage() {
+				if (this.currentDeviceDataModel) {
+					return this.currentDeviceDataModel.isDeviceOn ? '../../static/images/stey_ioticon_switch_on.png' : '../../static/images/stey_ioticon_switch_off.png'
+				}
+				return ''
+			},
+			deviceName() {
+				if (this.currentDeviceDataModel) {
+					return this.currentDeviceDataModel.device.deviceName
+				}
+				return ''
+			},
+			switchState() {
+				if (this.currentDeviceDataModel) {
+					return this.currentDeviceDataModel.isDeviceOn ? '已打开' : '已关闭'
+				}
+				return ''
+			}
 		},
 		methods: {
 			...mapMutations(['logout']),
 			loginButtonClick() {
 				uni.navigateTo({
 					url:'../login/login'
+				})
+			},
+			bookingButtonClick() {
+				const url = encodeURIComponent('https://www.stey.com/zh-CN/booking/list')
+				uni.navigateTo({
+					url: `../web/web-view?url=${url}`
 				})
 			},
 			tapCurrentRoom(event) {
@@ -149,6 +235,9 @@
 							title: '网络请求失败',
 							duration: 2000
 						})
+					},
+					complete: () => {
+						this.isRequestSpacesDone = true
 					}
 				})
 			},
@@ -297,6 +386,16 @@
 						uni.hideLoading()
 					}
 				})
+			},
+			deviceSettingClick(deviceDataModel) {
+				this.currentDeviceDataModel = deviceDataModel
+				this.showPop = true
+			},
+			popUpClose() {
+				this.showPop = false
+			},
+			sliderValueChange(event) {
+				this.dimmerValue = event.detail.value
 			}
 		}
 	}
@@ -365,5 +464,71 @@
 		padding: 0 !important;
 		color: transparent !important;
 	}
-	
+	.van-popup {
+		background-color: rgba(0, 0, 0, .5) !important;
+		height: 100%;
+		width: 100%;
+		backdrop-filter: blur(5px);
+	}
+	.pop-back {
+		height: 100%;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+	.pop-top {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.pop-close {
+		margin-left: 60rpx;
+		align-self: flex-start;
+	}
+	.pop-device-image {
+		width: 60px;
+		height: 60px;
+	}
+	.pop-middle {
+		width: 100%;
+		flex: 1;
+	}
+	.pop-device-dimmer-container {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+	.dimmer-value {
+		background-color: #FFFFFF;
+		width: 80rpx;
+		height: 48rpx;
+		border-radius: 10rpx;
+		color: #000000;
+		font-size: 12px;
+		margin-bottom: 20rpx;
+		text-align: center;
+		line-height: 48rpx;
+	}
+	.pop-slider-container {
+		width: 90%;
+	}
+	.pop-bottom {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		color: #FFFFFF;
+		font-size: 12px;
+		padding-bottom: 120rpx;
+	}
+	.switch-button {
+		width: 60px;
+		height: 60px;
+	}
+	.device-name {
+		margin: 8rpx 0;
+	}
 </style>

@@ -91,6 +91,10 @@
   color: #FFFFFF;
   text-align: center;
 }
+.change-login {
+  font-size: 14px;
+  color: #5B5B5B;
+}
 .login-button {
   background-color: #5a2b81;
   height: 80rpx;
