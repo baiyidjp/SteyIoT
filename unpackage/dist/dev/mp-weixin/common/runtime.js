@@ -104,11 +104,11 @@
 /******/
 /******/
 /******/ 		// mini-css-extract-plugin CSS loading
-/******/ 		var cssChunks = {"pages/index/components/device-item":1};
+/******/ 		var cssChunks = {"pages/index/components/device-air-conditioner-setting":1,"pages/index/components/device-item":1};
 /******/ 		if(installedCssChunks[chunkId]) promises.push(installedCssChunks[chunkId]);
 /******/ 		else if(installedCssChunks[chunkId] !== 0 && cssChunks[chunkId]) {
 /******/ 			promises.push(installedCssChunks[chunkId] = new Promise(function(resolve, reject) {
-/******/ 				var href = "" + ({"pages/index/components/device-item":"pages/index/components/device-item","pages/index/components/device-air-conditioner-setting":"pages/index/components/device-air-conditioner-setting","pages/index/components/device-air-purifier-setting":"pages/index/components/device-air-purifier-setting","pages/index/components/device-curtain-setting":"pages/index/components/device-curtain-setting","pages/index/components/device-dimmer-setting":"pages/index/components/device-dimmer-setting"}[chunkId]||chunkId) + ".wxss";
+/******/ 				var href = "" + ({"pages/index/components/device-air-conditioner-setting":"pages/index/components/device-air-conditioner-setting","pages/index/components/device-air-purifier-setting":"pages/index/components/device-air-purifier-setting","pages/index/components/device-curtain-setting":"pages/index/components/device-curtain-setting","pages/index/components/device-item":"pages/index/components/device-item"}[chunkId]||chunkId) + ".wxss";
 /******/ 				var fullhref = __webpack_require__.p + href;
 /******/ 				var existingLinkTags = document.getElementsByTagName("link");
 /******/ 				for(var i = 0; i < existingLinkTags.length; i++) {

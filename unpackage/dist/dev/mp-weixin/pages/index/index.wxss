@@ -1,3 +1,37 @@
+
+.pop-device-dimmer-container {
+	width: 100%;
+	height: 100%;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	        justify-content: center;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	        align-items: center;
+}
+.dimmer-value {
+	background-color: #FFFFFF;
+	width: 80rpx;
+	height: 48rpx;
+	-webkit-border-radius: 10rpx;
+	        border-radius: 10rpx;
+	color: #000000;
+	font-size: 12px;
+	margin-bottom: 20rpx;
+	text-align: center;
+	line-height: 48rpx;
+}
+.pop-slider-container {
+	width: 90%;
+}
+
 @charset "UTF-8";
 /**
  * 这里是uni-app内置的常用样式变量
@@ -151,38 +185,6 @@ page {
   -webkit-box-flex: 1;
   -webkit-flex: 1;
           flex: 1;
-}
-.pop-device-dimmer-container {
-  width: 100%;
-  height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-          flex-direction: column;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-          justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-          align-items: center;
-}
-.dimmer-value {
-  background-color: #FFFFFF;
-  width: 80rpx;
-  height: 48rpx;
-  -webkit-border-radius: 10rpx;
-          border-radius: 10rpx;
-  color: #000000;
-  font-size: 12px;
-  margin-bottom: 20rpx;
-  text-align: center;
-  line-height: 48rpx;
-}
-.pop-slider-container {
-  width: 90%;
 }
 .pop-bottom {
   display: -webkit-box;

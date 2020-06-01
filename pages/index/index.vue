@@ -11,8 +11,8 @@
 					<view class="zone-section-container" v-for="(zone, zoneIndex) in roomZones" :key="zone.zoneId">
 						<view class="zone-section-title">{{ zone.zoneName }}</view>
 						<van-grid :column-num="gridColumn" gutter="6px" custom-class="grid-container">
-							<van-grid-item use-slot content-class="grid-item-content" v-for="(device, deviceIndex) in zone.devices" :key="device.zoneDeviceId">
-								<device-item style="width: 100%;" :device="device" @itemclick="deviceItemClick()" @settingclick="deviceSettingClick()"></device-item>
+							<van-grid-item use-slot content-class="grid-item-content" v-for="(deviceDataModel, deviceIndex) in zone.deviceDataModels" :key="deviceDataModel.device.zoneDeviceId">
+								<device-item style="width: 100%;" :deviceDataModel="deviceDataModel" @itemclick="deviceItemClick()" @settingclick="deviceSettingClick()"></device-item>
 							</van-grid-item>
 						</van-grid>
 					</view>
@@ -36,15 +36,13 @@
 					<image class="pop-device-image" :src="popDeviceImage" mode=""></image>
 				</view>
 				<view class="pop-middle">
-					<view class="pop-device-dimmer-container">
-						<view class="dimmer-value">{{ dimmerValue }}%</view>
-						<view class="pop-slider-container">
-							<van-slider :value="dimmerValue" bar-height="12px" active-color="#FFFFFF" inactive-color="#333333" @drag="sliderValueChange"/>
-						</view>
-					</view>
+					<device-dimmer-setting v-if="deviceType.isDimmer" :deviceDataModel="currentDeviceDataModel" @dimmervaluechange="dimmerValueChange"></device-dimmer-setting>
+					<device-curtain-setting v-if="deviceType.isCurtain"></device-curtain-setting>
+					<device-air-conditioner-setting v-if="deviceType.isAirConditioner" :deviceDataModel="currentDeviceDataModel"></device-air-conditioner-setting>
+					<device-air-purifier-setting v-if="deviceType.isAirPurification"></device-air-purifier-setting>
 				</view>
 				<view class="pop-bottom">
-					<image class="switch-button" :src="switchImage" mode=""></image>
+					<image class="switch-button" :src="switchImage" mode="" @click="switchButtonClick"></image>
 					<view class="device-name">{{ deviceName }}</view>
 					<view class="switch-state">{{ switchState }}</view>
 				</view>
@@ -79,7 +77,12 @@
 				isRequestSpacesDone: false,
 				currentDeviceDataModel: null,
 				showPop: false,
-				dimmerValue: 0,
+				deviceType: {
+					isDimmer: false,
+					isCurtain: false,
+					isAirConditioner: false,
+					isAirPurification: false
+				}
 			}
 		},
 		components: {
@@ -145,7 +148,6 @@
 			...mapState(['isLogin']),
 			popDeviceImage() {
 				if (this.currentDeviceDataModel) {
-					console.log(this.currentDeviceDataModel);
 					switch (this.currentDeviceDataModel.device.typeC) {
 						case 'dimmingcontrol':
 						return '../../static/images/stey_ioticon_editceilinglamp.png'
@@ -325,77 +327,118 @@
 				const obj = JSON.parse(data)
 				const socketModel = new SocketModel(obj)
 				this.roomZones.forEach((zone) => {
-					const deviceModel = zone.devices.filter((device) => device.zoneDeviceId === socketModel.zoneDeviceId)[0]
-					if (deviceModel) {
+					const deviceDataModel = zone.deviceDataModels.filter((deviceDataModel) => deviceDataModel.device.zoneDeviceId === socketModel.zoneDeviceId)[0]
+					if (deviceDataModel) {
+						const deviceModel = deviceDataModel.device
 						const controlModel = deviceModel.controls.filter((control) => control.zoneDeviceControlId === socketModel.zoneDeviceControlId)[0]
 						if (controlModel) {
 							controlModel.value = socketModel.value
+							deviceDataModel.setDevice(deviceModel)
+							if (this.currentDeviceDataModel && this.currentDeviceDataModel.device.zoneDeviceId === deviceModel.zoneDeviceId) {
+								this.currentDeviceDataModel = deviceDataModel
+							}
 							console.log(socketModel);
 						}
 					}
 				})
 			},
-			deviceItemClick(obj) {
-				// 震动
-				uni.vibrateShort()
-				uni.showLoading({
-					title: '发送中',
-					mask: true
-				})
-				let socketObj = {
-					'spaceId': this.currentRoomValue,
-					...obj
-				}
-				uni.request({
-					url: 'https://gateway.stey.com/iot-service/staff-app/iot/run-command',
-					method: 'POST',
-					data: {
-						data: socketObj,
-						timestamp: Date.now()
-					},
-					header: {
-						'Content-Type': 'application/json; charset=utf-8',
-						'Authorization': `Bearer ${uni.getStorageSync('token')}`,
-						'Accept-Language': 'zh'
-					},
-					success: res => {
-						if (res.statusCode == 200) {
-						} else if (res.statusCode == 401) {
-							console.log('token失效')
-							this.logout()
-							this.loginTip = '登录失效'
-						} else {
-							const error = res.data.error
-							if (error) {
-								uni.showToast({
-									icon: 'none',
-									title: error,
-									duration: 2000
-								});
-							}
-						}
-					},
-					fail: () => {
-						uni.showToast({
-							icon: 'none',
-							title: '网络请求失败',
-							duration: 2000
-						})
-					},
-					complete() {
-						uni.hideLoading()
-					}
-				})
-			},
 			deviceSettingClick(deviceDataModel) {
 				this.currentDeviceDataModel = deviceDataModel
+				this.deviceType.isDimmer = (deviceDataModel.device.typeC === 'dimmingcontrol')
+				this.deviceType.isCurtain = (deviceDataModel.device.typeC === 'curtaincontrol')
+				this.deviceType.isAirConditioner = (deviceDataModel.device.typeC === 'airconditionercontrol')
+				this.deviceType.isAirPurification = (deviceDataModel.device.typeC === 'airpurifiercontrol')
 				this.showPop = true
+			},
+			switchButtonClick() {
+				let controlId = this.deviceControlModel(10).zoneDeviceControlId
+				if (this.currentDeviceDataModel.device.typeC === 'airpurifiercontrol' && this.currentDeviceDataModel.device.version === 1) {
+					controlId = this.deviceControlModel(40).zoneDeviceControlId	
+				}
+				let socketObj = {
+					'spaceId': this.currentRoomValue,
+					'value': this.currentDeviceDataModel.isDeviceOn ? 'false' : 'true',
+					'zoneDeviceId': this.currentDeviceDataModel.device.zoneDeviceId,
+					'zoneDeviceControlId': controlId,
+				}
+				this.sendSocket(socketObj).then((res) => {
+					this.currentDeviceDataModel.isDeviceOn = !this.currentDeviceDataModel.isDeviceOn
+				})
 			},
 			popUpClose() {
 				this.showPop = false
 			},
-			sliderValueChange(event) {
-				this.dimmerValue = event.detail.value
+			deviceItemClick(obj) {
+				let socketObj = {
+					'spaceId': this.currentRoomValue,
+					...obj
+				}
+				this.sendSocket(socketObj)
+			},
+			dimmerValueChange(obj) {
+				let socketObj = {
+					'spaceId': this.currentRoomValue,
+					...obj
+				}
+				this.sendSocket(socketObj)
+			},
+			sendSocket(socketObj) {
+				return new Promise((resolve, reject) => {
+					// 震动
+					uni.vibrateShort()
+					uni.showLoading({
+						title: '发送中',
+						mask: true
+					})
+					uni.request({
+						url: 'https://gateway.stey.com/iot-service/staff-app/iot/run-command',
+						method: 'POST',
+						data: {
+							data: socketObj,
+							timestamp: Date.now()
+						},
+						header: {
+							'Content-Type': 'application/json; charset=utf-8',
+							'Authorization': `Bearer ${uni.getStorageSync('token')}`,
+							'Accept-Language': 'zh'
+						},
+						success: res => {
+							if (res.statusCode == 200) {
+								resolve(res)
+							} else if (res.statusCode == 401) {
+								console.log('token失效')
+								this.logout()
+								this.loginTip = '登录失效'
+							} else {
+								const error = res.data.error
+								if (error) {
+									uni.showToast({
+										icon: 'none',
+										title: error,
+										duration: 2000
+									});
+								}
+							}
+						},
+						fail: () => {
+							uni.showToast({
+								icon: 'none',
+								title: '网络请求失败',
+								duration: 2000
+							})
+						},
+						complete() {
+							uni.hideLoading()
+						}
+					})
+				})
+			},
+			deviceControlModel(tag) {
+				const controlModel = this.currentDeviceDataModel.device.controls.filter((control) => control.tag == tag)[0]
+				if (controlModel) {
+					return controlModel
+				}
+				return new DeviceControlModel()
 			}
 		}
 	}
@@ -492,28 +535,6 @@
 	.pop-middle {
 		width: 100%;
 		flex: 1;
-	}
-	.pop-device-dimmer-container {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-	}
-	.dimmer-value {
-		background-color: #FFFFFF;
-		width: 80rpx;
-		height: 48rpx;
-		border-radius: 10rpx;
-		color: #000000;
-		font-size: 12px;
-		margin-bottom: 20rpx;
-		text-align: center;
-		line-height: 48rpx;
-	}
-	.pop-slider-container {
-		width: 90%;
 	}
 	.pop-bottom {
 		display: flex;

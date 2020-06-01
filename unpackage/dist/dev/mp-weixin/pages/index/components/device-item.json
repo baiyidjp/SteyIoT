@@ -1,6 +1,4 @@
 {
-  "usingComponents": {
-    "van-popup": "/wxcomponents/vant-weapp/popup/index"
-  },
+  "usingComponents": {},
   "component": true
 }

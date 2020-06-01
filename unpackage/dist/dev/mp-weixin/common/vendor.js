@@ -8787,7 +8787,8 @@ SpaceModel;exports.default = _default;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _deviceModel = _interopRequireDefault(__webpack_require__(/*! ./device-model.js */ 21));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}var
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _deviceModel = _interopRequireDefault(__webpack_require__(/*! ./device-model.js */ 21));
+var _deviceDataModel = _interopRequireDefault(__webpack_require__(/*! ./device-data-model.js */ 23));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}var
 
 RoomZoneModel =
 function RoomZoneModel(obj) {_classCallCheck(this, RoomZoneModel);
@@ -8796,6 +8797,7 @@ function RoomZoneModel(obj) {_classCallCheck(this, RoomZoneModel);
   this.isSystemZone = obj.isSystemZone;
   this.zoneName = obj.nameT[0].content;
   this.devices = obj.devices.map(function (device) {return new _deviceModel.default(device);});
+  this.deviceDataModels = this.devices.map(function (deviceModel) {return new _deviceDataModel.default(deviceModel);});
 };var _default =
 
 
@@ -8875,81 +8877,109 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 var _controlModel = _interopRequireDefault(__webpack_require__(/*! ./control-model.js */ 22));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);return Constructor;}var
 
 DeviceDataModel = /*#__PURE__*/function () {
-  function DeviceDataModel(device) {var _device$iconC;_classCallCheck(this, DeviceDataModel);
-    this.device = device;
-    this.showDeviceSwitchColor = true;
-    this.showDeviceSetting = true;
-    this.dimmerValue = 0;
-    switch (device.typeC) {
-      case 'onekeyswitch':
-        this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
-        this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
-        this.showDeviceSetting = false;
-        break;
-      case 'dimmingcontrol':
-        this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
-        var sliderControlModel = this.deviceControlModel(20);
-        var sliderValueFloat = sliderControlModel.value ? parseFloat(sliderControlModel.value) : sliderControlModel.minValue;
-        if (!sliderControlModel.value || sliderValueFloat < sliderControlModel.minValue) {
-          sliderControlModel.value = "".concat(sliderControlModel.minValue);
-        }
-        if (sliderValueFloat > sliderControlModel.maxValue) {
-          sliderControlModel.value = "".concat(sliderControlModel.maxValue);
-        }
-        var controlValue = sliderControlModel.value ? parseFloat(sliderControlModel.value) : sliderControlModel.minValue;
-        var sliderValue = (controlValue - sliderControlModel.minValue) / (sliderControlModel.maxValue - sliderControlModel.minValue);
-        var valueInt = parseInt(sliderValue * 100);
-        var sliderValueInt = parseInt(this.dimmerValue * 100);
-        var showTitle = "".concat(valueInt, "%");
-        if (Math.abs(sliderValueInt - valueInt) <= 4) {
-          showTitle = "".concat(sliderValueInt, "%");
-        }
-        this.deviceShowTitle = this.isDeviceOn ? showTitle : '已关闭';
-        break;
-
-      case 'curtaincontrol':
-        var openControlModel = this.deviceControlModel(10);
-        var pauseControlModel = this.deviceControlModel(20);
-        var closeControlModel = this.deviceControlModel(30);
-
-        var isOpen = openControlModel.value;
-        var isPause = pauseControlModel.value;
-        var isClose = closeControlModel.value;
-
-        if (isOpen || isClose || isPause) {
-          this.isDeviceOn = true;
-        } else {
-          this.isDeviceOn = false;
-        }
-        this.deviceShowTitle = ' ';
-        this.showDeviceSwitchColor = false;
-        break;
-      case 'airconditionercontrol':
-        this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
-        var title = '制冷';
-        // 空调温度
-        var acTemp = this.deviceControlModel(40).value;
-        if (acTemp) {
-          title = '制冷' + ' / ' + acTemp;
-        }
-        this.deviceShowTitle = this.isDeviceOn ? title : '已关闭';
-        break;
-      case 'airpurifiercontrol':
-        if (device.version == 1) {
-          this.isDeviceOn = this.deviceControlModel(40).value === 'true' ? true : false;
-        } else {
+  function DeviceDataModel(device) {_classCallCheck(this, DeviceDataModel);
+    this.setDevice(device);
+  }_createClass(DeviceDataModel, [{ key: "setDevice", value: function setDevice(
+    device) {var _device$iconC;
+      this.device = device;
+      this.showDeviceSwitchColor = true;
+      this.showDeviceSetting = true;
+      this.dimmerValue = 0;
+      // 滑块的值
+      this.sliderValue = 0;
+      // 空调的风速 off l1 l2 l3
+      this.isLow = false;
+      this.isMid = false;
+      this.isHigh = false;
+      // 空调的温度
+      this.acTemp = 26.0;
+      // 室内温度
+      this.currentRoomTemp = 0;
+      switch (device.typeC) {
+        case 'onekeyswitch':
           this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
-        }
-        this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
-        break;}
+          this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
+          this.showDeviceSetting = false;
+          break;
+        case 'dimmingcontrol':
+          this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
+          var sliderControlModel = this.deviceControlModel(20);
+          var sliderValueFloat = sliderControlModel.value ? parseFloat(sliderControlModel.value) : sliderControlModel.minValue;
+          if (!sliderControlModel.value || sliderValueFloat < sliderControlModel.minValue) {
+            sliderControlModel.value = "".concat(sliderControlModel.minValue);
+          }
+          if (sliderValueFloat > sliderControlModel.maxValue) {
+            sliderControlModel.value = "".concat(sliderControlModel.maxValue);
+          }
+          var controlValue = sliderControlModel.value ? parseFloat(sliderControlModel.value) : sliderControlModel.minValue;
+          var sliderValue = (controlValue - sliderControlModel.minValue) / (sliderControlModel.maxValue - sliderControlModel.minValue);
+          var valueInt = parseInt(sliderValue * 100);
+          var sliderValueInt = parseInt(this.dimmerValue * 100);
+          var showTitle = "".concat(valueInt, "%");
+          this.sliderValue = valueInt;
+          if (Math.abs(sliderValueInt - valueInt) <= 4) {
+            showTitle = "".concat(sliderValueInt, "%");
+            this.sliderValue = sliderValueInt;
+          }
+          this.deviceShowTitle = this.isDeviceOn ? showTitle : '已关闭';
+          break;
 
-    var iconC = (_device$iconC = device.iconC) !== null && _device$iconC !== void 0 ? _device$iconC : '';
-    if (iconC.indexOf('lamp') != -1) {
-      iconC = 'ceilinglamp';
-    }
-    var switchState = this.isDeviceOn ? 'on' : 'off';
-    this.deviceImageName = "stey_ioticon_".concat(switchState, "_").concat(iconC, ".png");
-  }_createClass(DeviceDataModel, [{ key: "deviceControlModel", value: function deviceControlModel(
+        case 'curtaincontrol':
+          var openControlModel = this.deviceControlModel(10);
+          var pauseControlModel = this.deviceControlModel(20);
+          var closeControlModel = this.deviceControlModel(30);
+
+          var isOpen = openControlModel.value;
+          var isPause = pauseControlModel.value;
+          var isClose = closeControlModel.value;
+
+          if (isOpen || isClose || isPause) {
+            this.isDeviceOn = true;
+          } else {
+            this.isDeviceOn = false;
+          }
+          this.deviceShowTitle = ' ';
+          this.showDeviceSwitchColor = false;
+          break;
+        case 'airconditionercontrol':
+          this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
+          var title = '制冷';
+          // 空调温度
+          var acTemp = this.deviceControlModel(40).value;
+          if (acTemp) {
+            title = '制冷' + ' / ' + acTemp;
+            this.acTemp = acTemp;
+          }
+          this.deviceShowTitle = this.isDeviceOn ? title : '已关闭';
+
+          var windValue = this.deviceControlModel(30).value;
+          // 风速
+          this.isLow = windValue === 'l1';
+          this.isMid = windValue === 'l2';
+          this.isHigh = windValue === 'l3';
+
+          // 室内温度
+          var indoorTemp = this.deviceControlModel(1010).value;
+          if (indoorTemp) {
+            this.currentRoomTemp = indoorTemp;
+          }
+          break;
+        case 'airpurifiercontrol':
+          if (device.version == 1) {
+            this.isDeviceOn = this.deviceControlModel(40).value === 'true' ? true : false;
+          } else {
+            this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
+          }
+          this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
+          break;}
+
+      var iconC = (_device$iconC = device.iconC) !== null && _device$iconC !== void 0 ? _device$iconC : '';
+      if (iconC.indexOf('lamp') != -1) {
+        iconC = 'ceilinglamp';
+      }
+      var switchState = this.isDeviceOn ? 'on' : 'off';
+      this.deviceImageName = "stey_ioticon_".concat(switchState, "_").concat(iconC, ".png");
+    } }, { key: "deviceControlModel", value: function deviceControlModel(
 
     tag) {
       var controlModel = this.device.controls.filter(function (control) {return control.tag == tag;})[0];

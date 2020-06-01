@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/index/components/device-dimmer-setting",
     "pages/login/login",
     "pages/web/web-view"
   ],

@@ -3,10 +3,23 @@ import DeviceControlModel from './control-model.js'
 
 class DeviceDataModel {
 	constructor(device) {
+		this.setDevice(device)
+	}
+	setDevice(device) {
 		this.device = device
 		this.showDeviceSwitchColor = true
 		this.showDeviceSetting = true
 		this.dimmerValue = 0
+		// 滑块的值
+		this.sliderValue = 0
+		// 空调的风速 off l1 l2 l3
+		this.isLow = false
+		this.isMid = false
+		this.isHigh = false
+		// 空调的温度
+		this.acTemp = 26.0
+		// 室内温度
+		this.currentRoomTemp = 0
 		switch (device.typeC) {
 			case 'onekeyswitch': 
 			this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false
@@ -28,8 +41,10 @@ class DeviceDataModel {
 			const valueInt = parseInt(sliderValue*100)
 			const sliderValueInt = parseInt(this.dimmerValue*100)
 			let showTitle = `${valueInt}%`
+			this.sliderValue = valueInt
 			if (Math.abs(sliderValueInt - valueInt) <= 4) {
 				showTitle = `${sliderValueInt}%`
+				this.sliderValue = sliderValueInt
 			}
 			this.deviceShowTitle = this.isDeviceOn ? showTitle : '已关闭'
 			break;
@@ -58,8 +73,21 @@ class DeviceDataModel {
 			const acTemp = this.deviceControlModel(40).value
 			if (acTemp) {
 				title = '制冷' + ' / ' + acTemp
+				this.acTemp = acTemp
 			}
 			this.deviceShowTitle = this.isDeviceOn ? title : '已关闭'
+			
+			const windValue = this.deviceControlModel(30).value
+			// 风速
+			this.isLow = (windValue === 'l1')
+			this.isMid = (windValue === 'l2')
+			this.isHigh = (windValue === 'l3')
+
+			// 室内温度
+			let indoorTemp = this.deviceControlModel(1010).value
+			if (indoorTemp) {
+					this.currentRoomTemp = indoorTemp
+			}
 			break;
 			case 'airpurifiercontrol':
 			if (device.version == 1) {

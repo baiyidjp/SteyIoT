@@ -3,7 +3,7 @@
 		<view class="device-left">
 			<image class="device-image" :src="deviceImage" mode=""></image>
 			<text class="state-text" :style="{color: switchColor}">{{ deviceTitle }}</text>
-			<text class="device-name">{{ device.deviceName }}</text>
+			<text class="device-name">{{ deviceName }}</text>
 		</view>
 		<view v-if="deviceDataModel.showDeviceSwitchColor" class="device-right">
 			<view class="switch-color" :style="{backgroundColor: switchColor}"></view>
@@ -24,13 +24,9 @@
 			}
 		},
 		props: {
-			device: null
+			deviceDataModel: null
 		},
 		computed: {
-			deviceDataModel() {
-				const deviceDataModel = new DeviceDataModel(this.device)
-				return deviceDataModel
-			},
 			deviceImage() {
 				return `/static/images/${this.deviceDataModel.deviceImageName}`
 			},
@@ -42,23 +38,33 @@
 			},
 			deviceTitle() {
 				return this.deviceDataModel.deviceShowTitle
+			},
+			deviceName() {
+				return this.deviceDataModel.device.deviceName
 			}
 		},
 		methods: {
 			deviceItemClick() {
-				let controlId = this.deviceDataModel.deviceControlModel(10).zoneDeviceControlId
-				if (this.device.typeC === 'airpurifiercontrol' && this.device.version === 1) {
-					controlId = DeviceDataModel.deviceControlModel(40).zoneDeviceControlId	
+				let controlId = this.deviceControlModel(10).zoneDeviceControlId
+				if (this.deviceDataModel.device.typeC === 'airpurifiercontrol' && this.deviceDataModel.device.version === 1) {
+					controlId = this.deviceControlModel(40).zoneDeviceControlId	
 				}
 				const obj = {
 					'value': this.deviceDataModel.isDeviceOn ? 'false' : 'true',
-					'zoneDeviceId': this.device.zoneDeviceId,
+					'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
 					'zoneDeviceControlId': controlId,
 				}
 				this.$emit('itemclick', obj)
 			},
 			settingButtonClick() {
 				this.$emit('settingclick', this.deviceDataModel)
+			},
+			deviceControlModel(tag) {
+				const controlModel = this.deviceDataModel.device.controls.filter((control) => control.tag == tag)[0]
+				if (controlModel) {
+					return controlModel
+				}
+				return new DeviceControlModel()
 			}
 		},
 	}

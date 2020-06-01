@@ -7,7 +7,6 @@
     "van-dropdown-item": "/wxcomponents/vant-weapp/dropdown-item/index",
     "van-popup": "/wxcomponents/vant-weapp/popup/index",
     "van-icon": "/wxcomponents/vant-weapp/icon/index",
-    "van-slider": "/wxcomponents/vant-weapp/slider/index",
     "device-item": "/pages/index/components/device-item",
     "device-dimmer-setting": "/pages/index/components/device-dimmer-setting",
     "device-curtain-setting": "/pages/index/components/device-curtain-setting",

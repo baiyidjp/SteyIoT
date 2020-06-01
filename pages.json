@@ -10,7 +10,14 @@
 					"van-dropdown-menu": "/wxcomponents/vant-weapp/dropdown-menu/index",
 					"van-dropdown-item": "/wxcomponents/vant-weapp/dropdown-item/index",
 					"van-popup": "/wxcomponents/vant-weapp/popup/index",
-					"van-icon": "/wxcomponents/vant-weapp/icon/index",
+					"van-icon": "/wxcomponents/vant-weapp/icon/index"
+				}
+			}
+		},
+		{
+			"path": "pages/index/components/device-dimmer-setting",
+			"style": {
+				"usingComponents": {
 					"van-slider": "/wxcomponents/vant-weapp/slider/index"
 				}
 			}
