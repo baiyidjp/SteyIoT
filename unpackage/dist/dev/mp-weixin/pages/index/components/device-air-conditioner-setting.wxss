@@ -66,7 +66,9 @@
 	        align-items: center;
 }
 .temp-text {
-	margin: 0 90rpx;
+	width: 110px;
+	margin: 0 74rpx;
+	text-align: center;
 }
 .temp-button {
 	width: 40px;
@@ -81,9 +83,6 @@
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: flex;
-	-webkit-box-pack: justify;
-	-webkit-justify-content: space-between;
-	        justify-content: space-between;
 }
 .wind-button {
 	width: 48px;

@@ -104,7 +104,7 @@
 /******/
 /******/
 /******/ 		// mini-css-extract-plugin CSS loading
-/******/ 		var cssChunks = {"pages/index/components/device-air-conditioner-setting":1,"pages/index/components/device-item":1};
+/******/ 		var cssChunks = {"pages/index/components/device-air-conditioner-setting":1,"pages/index/components/device-air-purifier-setting":1,"pages/index/components/device-item":1};
 /******/ 		if(installedCssChunks[chunkId]) promises.push(installedCssChunks[chunkId]);
 /******/ 		else if(installedCssChunks[chunkId] !== 0 && cssChunks[chunkId]) {
 /******/ 			promises.push(installedCssChunks[chunkId] = new Promise(function(resolve, reject) {

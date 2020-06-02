@@ -168,14 +168,14 @@ var _default = { data: function data() {return { sliderValue: 0, isDrag: false, 
         'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
         'zoneDeviceControlId': controlId };
 
-      this.$emit('dimmervaluechange', obj);
+      this.$emit('sendsocketobj', obj);
     },
     deviceControlModel: function deviceControlModel(tag) {
       var controlModel = this.deviceDataModel.device.controls.filter(function (control) {return control.tag == tag;})[0];
       if (controlModel) {
         return controlModel;
       }
-      return new DeviceControlModel();
+      return null;
     } } };exports.default = _default;
 
 /***/ }),

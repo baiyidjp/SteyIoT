@@ -52,14 +52,14 @@
 					'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
 					'zoneDeviceControlId': controlId,
 				}
-				this.$emit('dimmervaluechange', obj)
+				this.$emit('sendsocketobj', obj)
 			},
 			deviceControlModel(tag) {
 				const controlModel = this.deviceDataModel.device.controls.filter((control) => control.tag == tag)[0]
 				if (controlModel) {
 					return controlModel
 				}
-				return new DeviceControlModel()
+				return null
 			}
 		}
 	}

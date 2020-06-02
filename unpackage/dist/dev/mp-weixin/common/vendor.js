@@ -8874,7 +8874,7 @@ DeviceControlModel;exports.default = _default;
 
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _deviceModel = _interopRequireDefault(__webpack_require__(/*! ./device-model.js */ 21));
-var _controlModel = _interopRequireDefault(__webpack_require__(/*! ./control-model.js */ 22));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);return Constructor;}var
+var _controlModel2 = _interopRequireDefault(__webpack_require__(/*! ./control-model.js */ 22));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);return Constructor;}var
 
 DeviceDataModel = /*#__PURE__*/function () {
   function DeviceDataModel(device) {_classCallCheck(this, DeviceDataModel);
@@ -8887,7 +8887,7 @@ DeviceDataModel = /*#__PURE__*/function () {
       this.dimmerValue = 0;
       // 滑块的值
       this.sliderValue = 0;
-      // 空调的风速 off l1 l2 l3
+      // 空调/新风机风速 off l1 l2 l3
       this.isLow = false;
       this.isMid = false;
       this.isHigh = false;
@@ -8895,12 +8895,22 @@ DeviceDataModel = /*#__PURE__*/function () {
       this.acTemp = 26.0;
       // 室内温度
       this.currentRoomTemp = 0;
+      // 新风机档位
+      this.isAuto = false;
+      this.isManual = false;
+      this.isSleep = false;
+      this.aqi = '--';
+      this.co2 = '--';
+      this.pm25 = '--';
+
       switch (device.typeC) {
+        // 单开关
         case 'onekeyswitch':
           this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
           this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
           this.showDeviceSetting = false;
           break;
+        // 调控灯
         case 'dimmingcontrol':
           this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
           var sliderControlModel = this.deviceControlModel(20);
@@ -8923,7 +8933,7 @@ DeviceDataModel = /*#__PURE__*/function () {
           }
           this.deviceShowTitle = this.isDeviceOn ? showTitle : '已关闭';
           break;
-
+        // 窗帘
         case 'curtaincontrol':
           var openControlModel = this.deviceControlModel(10);
           var pauseControlModel = this.deviceControlModel(20);
@@ -8941,6 +8951,7 @@ DeviceDataModel = /*#__PURE__*/function () {
           this.deviceShowTitle = ' ';
           this.showDeviceSwitchColor = false;
           break;
+        // 空调
         case 'airconditionercontrol':
           this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
           var title = '制冷';
@@ -8964,11 +8975,47 @@ DeviceDataModel = /*#__PURE__*/function () {
             this.currentRoomTemp = indoorTemp;
           }
           break;
+        // 新风机
         case 'airpurifiercontrol':
           if (device.version == 1) {
             this.isDeviceOn = this.deviceControlModel(40).value === 'true' ? true : false;
+            // 数据
+            var dataControlModel = this.deviceControlModel(20);
+            if (dataControlModel.value) {
+              var dataJSON = JSON.parse(dataControlModel.value);
+              this.aqi = dataJSON.aqi || '--';
+              this.co2 = dataJSON.co2 || '--';
+              this.pm25 = dataJSON.pm25 || '--';
+            }
+            var controlModel = this.deviceControlModel(50);
+            if (controlModel.value) {
+              this.isAuto = controlModel.value === '1';
+              this.isManual = controlModel.value === '0';
+              this.isSleep = controlModel.value === '2';
+            }
+            var windControlModel = this.deviceControlModel(70);
+            if (windControlModel.value) {
+              this.isLow = windControlModel.value === '1';
+              this.isMid = windControlModel.value === '2';
+              this.isHigh = windControlModel.value === '3';
+            }
           } else {
             this.isDeviceOn = this.deviceControlModel(10).value === 'true' ? true : false;
+            var _controlModel = this.deviceControlModel(20);
+            if (_controlModel.value) {
+              this.isAuto = _controlModel.value === 'auto';
+              this.isManual = _controlModel.value === 'manual';
+              this.isSleep = _controlModel.value === 'sleep';
+            }
+            var _windControlModel = this.deviceControlModel(30);
+            if (_windControlModel.value) {
+              this.isLow = _windControlModel.value === 'l1';
+              this.isMid = _windControlModel.value === 'l2';
+              this.isHigh = _windControlModel.value === 'l3';
+            }
+            this.aqi = this.deviceControlModel(1060).value || '--';
+            this.co2 = this.deviceControlModel(1050).value || '--';
+            this.pm25 = this.deviceControlModel(1010).value || '--';
           }
           this.deviceShowTitle = this.isDeviceOn ? '已打开' : '已关闭';
           break;}
@@ -8986,7 +9033,7 @@ DeviceDataModel = /*#__PURE__*/function () {
       if (controlModel) {
         return controlModel;
       }
-      return new _controlModel.default();
+      return new _controlModel2.default();
     } }]);return DeviceDataModel;}();var _default =
 
 

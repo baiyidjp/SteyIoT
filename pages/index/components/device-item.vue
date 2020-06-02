@@ -54,7 +54,7 @@
 					'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
 					'zoneDeviceControlId': controlId,
 				}
-				this.$emit('itemclick', obj)
+				this.$emit('sendsocketobj', obj)
 			},
 			settingButtonClick() {
 				this.$emit('settingclick', this.deviceDataModel)
@@ -64,7 +64,7 @@
 				if (controlModel) {
 					return controlModel
 				}
-				return new DeviceControlModel()
+				return null
 			}
 		},
 	}

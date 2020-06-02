@@ -12,7 +12,7 @@
 						<view class="zone-section-title">{{ zone.zoneName }}</view>
 						<van-grid :column-num="gridColumn" gutter="6px" custom-class="grid-container">
 							<van-grid-item use-slot content-class="grid-item-content" v-for="(deviceDataModel, deviceIndex) in zone.deviceDataModels" :key="deviceDataModel.device.zoneDeviceId">
-								<device-item style="width: 100%;" :deviceDataModel="deviceDataModel" @itemclick="deviceItemClick()" @settingclick="deviceSettingClick()"></device-item>
+								<device-item style="width: 100%;" :deviceDataModel="deviceDataModel" @sendsocketobj="sendSocketObj" @settingclick="deviceSettingClick()"></device-item>
 							</van-grid-item>
 						</van-grid>
 					</view>
@@ -36,10 +36,10 @@
 					<image class="pop-device-image" :src="popDeviceImage" mode=""></image>
 				</view>
 				<view class="pop-middle">
-					<device-dimmer-setting v-if="deviceType.isDimmer" :deviceDataModel="currentDeviceDataModel" @dimmervaluechange="dimmerValueChange"></device-dimmer-setting>
-					<device-curtain-setting v-if="deviceType.isCurtain"></device-curtain-setting>
-					<device-air-conditioner-setting v-if="deviceType.isAirConditioner" :deviceDataModel="currentDeviceDataModel"></device-air-conditioner-setting>
-					<device-air-purifier-setting v-if="deviceType.isAirPurification"></device-air-purifier-setting>
+					<device-dimmer-setting v-if="deviceType.isDimmer" :deviceDataModel="currentDeviceDataModel" @sendsocketobj="sendSocketObj"></device-dimmer-setting>
+					<device-curtain-setting v-if="deviceType.isCurtain" :deviceDataModel="currentDeviceDataModel" @sendsocketobj="sendSocketObj"></device-curtain-setting>
+					<device-air-conditioner-setting v-if="deviceType.isAirConditioner" :deviceDataModel="currentDeviceDataModel" @sendsocketobj="sendSocketObj"></device-air-conditioner-setting>
+					<device-air-purifier-setting v-if="deviceType.isAirPurification" :deviceDataModel="currentDeviceDataModel" @sendsocketobj="sendSocketObj"></device-air-purifier-setting>
 				</view>
 				<view class="pop-bottom">
 					<image class="switch-button" :src="switchImage" mode="" @click="switchButtonClick"></image>
@@ -337,7 +337,7 @@
 							if (this.currentDeviceDataModel && this.currentDeviceDataModel.device.zoneDeviceId === deviceModel.zoneDeviceId) {
 								this.currentDeviceDataModel = deviceDataModel
 							}
-							console.log(socketModel);
+							// console.log(socketModel);
 						}
 					}
 				})
@@ -368,14 +368,7 @@
 			popUpClose() {
 				this.showPop = false
 			},
-			deviceItemClick(obj) {
-				let socketObj = {
-					'spaceId': this.currentRoomValue,
-					...obj
-				}
-				this.sendSocket(socketObj)
-			},
-			dimmerValueChange(obj) {
+			sendSocketObj(obj) {
 				let socketObj = {
 					'spaceId': this.currentRoomValue,
 					...obj
@@ -383,6 +376,7 @@
 				this.sendSocket(socketObj)
 			},
 			sendSocket(socketObj) {
+				console.log(socketObj);
 				return new Promise((resolve, reject) => {
 					// 震动
 					uni.vibrateShort()

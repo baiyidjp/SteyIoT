@@ -13,14 +13,16 @@
 			<view class="current-temp-text">当前室内温度：{{ currentRoomTemp }}℃</view>
 		</view>
 		<view class="bottom-container">
-			<image class="wind-button" :src="lowWindImage" mode=""></image>
-			<image class="wind-button" :src="midWindImage" mode=""></image>
-			<image class="wind-button" :src="highWindImage" mode=""></image>
+			<image class="wind-button" :src="lowWindImage" mode="" @click="windButtonClick('l1')"></image>
+			<image class="wind-button" :src="midWindImage" mode="" @click="windButtonClick('l2')"></image>
+			<image class="wind-button" :src="highWindImage" mode="" @click="windButtonClick('l3')"></image>
 		</view>
 	</view>
 </template>
 
 <script>
+	import DeviceModel from '../js/device-model.js'
+	import DeviceDataModel from '../js/device-data-model.js';
 	export default {
 		data() {
 			return {
@@ -68,17 +70,50 @@
 		},
 		methods: {
 			minusTempButtonClick() {
-				this.currentTemp = (parseFloat(this.currentTemp) - 0.5).toFixed(1)
+				if (!this.deviceDataModel.isDeviceOn) return
+				const controlModel = this.deviceControlModel(40)
+				if (parseFloat(this.currentTemp) > controlModel.minValue) {
+					this.currentTemp = (parseFloat(this.currentTemp) - 0.5).toFixed(1)
+					const obj = {
+						'value': this.currentTemp,
+						'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
+						'zoneDeviceControlId': controlModel.zoneDeviceControlId,
+					}
+					this.$emit('sendsocketobj', obj)
+				}
 			},
 			plusTempButtonClick() {
-				this.currentTemp = (parseFloat(this.currentTemp) + 0.5).toFixed(1)
+				if (!this.deviceDataModel.isDeviceOn) return
+				const controlModel = this.deviceControlModel(40)
+				if (parseFloat(this.currentTemp) < controlModel.maxValue) {
+					this.currentTemp = (parseFloat(this.currentTemp) + 0.5).toFixed(1)
+					const obj = {
+						'value': this.currentTemp,
+						'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
+						'zoneDeviceControlId': controlModel.zoneDeviceControlId,
+					}
+					this.$emit('sendsocketobj', obj)
+				}
+			},
+			windButtonClick(leave) {
+				if (!this.deviceDataModel.isDeviceOn) return
+				if (leave === 'l1' && this.deviceDataModel.isLow) return
+				if (leave === 'l2' && this.deviceDataModel.isMid) return
+				if (leave === 'l3' && this.deviceDataModel.isHigh) return
+				const controlModel = this.deviceControlModel(30)
+				const obj = {
+					'value': leave,
+					'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
+					'zoneDeviceControlId': controlModel.zoneDeviceControlId,
+				}
+				this.$emit('sendsocketobj', obj)
 			},
 			deviceControlModel(tag) {
 				const controlModel = this.deviceDataModel.device.controls.filter((control) => control.tag == tag)[0]
 				if (controlModel) {
 					return controlModel
 				}
-				return new DeviceControlModel()
+				return null
 			}
 		},
 	}
@@ -123,7 +158,9 @@
 		align-items: center;
 	}
 	.temp-text {
-		margin: 0 90rpx;
+		width: 110px;
+		margin: 0 74rpx;
+		text-align: center;
 	}
 	.temp-button {
 		width: 40px;
@@ -136,7 +173,6 @@
 	}
 	.bottom-container {
 		display: flex;
-		justify-content: space-between;
 	}
 	.wind-button {
 		width: 48px;

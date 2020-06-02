@@ -170,7 +170,7 @@ var _default = { data: function data() {return {};}, props: { deviceDataModel: n
         'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
         'zoneDeviceControlId': controlId };
 
-      this.$emit('itemclick', obj);
+      this.$emit('sendsocketobj', obj);
     },
     settingButtonClick: function settingButtonClick() {
       this.$emit('settingclick', this.deviceDataModel);
@@ -180,7 +180,7 @@ var _default = { data: function data() {return {};}, props: { deviceDataModel: n
       if (controlModel) {
         return controlModel;
       }
-      return new DeviceControlModel();
+      return null;
     } } };exports.default = _default;
 
 /***/ }),

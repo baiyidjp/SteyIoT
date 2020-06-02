@@ -114,51 +114,53 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0; //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-var _default =
-{
-  data: function data() {
-    return {
-      currentTemp: 26.0,
-      currentRoomTemp: 0 };
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;
 
-  },
-  props: {
-    deviceDataModel: null },
 
-  mounted: function mounted() {
-    if (this.deviceDataModel) {
-      this.currentTemp = parseFloat(this.deviceDataModel.acTemp).toFixed(1);
-      this.currentRoomTemp = this.deviceDataModel.currentRoomTemp;
-    }
-  },
-  watch: {
-    deviceDataModel: function deviceDataModel(newValue, oldValue) {
-      this.currentTemp = newValue.acTemp;
-      this.currentRoomTemp = newValue.currentRoomTemp;
-    } },
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var _deviceModel = _interopRequireDefault(__webpack_require__(/*! ../js/device-model.js */ 21));
+var _deviceDataModel = _interopRequireDefault(__webpack_require__(/*! ../js/device-data-model.js */ 23));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+var _default = { data: function data() {return { currentTemp: 26.0, currentRoomTemp: 0 };}, props: { deviceDataModel: null }, mounted: function mounted() {if (this.deviceDataModel) {this.currentTemp = parseFloat(this.deviceDataModel.acTemp).toFixed(1);this.currentRoomTemp = this.deviceDataModel.currentRoomTemp;}}, watch: { deviceDataModel: function deviceDataModel(newValue, oldValue) {this.currentTemp = newValue.acTemp;this.currentRoomTemp = newValue.currentRoomTemp;} },
   computed: {
     lowWindImage: function lowWindImage() {
       if (this.deviceDataModel) {
@@ -184,17 +186,50 @@ var _default =
 
   methods: {
     minusTempButtonClick: function minusTempButtonClick() {
-      this.currentTemp = (parseFloat(this.currentTemp) - 0.5).toFixed(1);
+      if (!this.deviceDataModel.isDeviceOn) return;
+      var controlModel = this.deviceControlModel(40);
+      if (parseFloat(this.currentTemp) > controlModel.minValue) {
+        this.currentTemp = (parseFloat(this.currentTemp) - 0.5).toFixed(1);
+        var obj = {
+          'value': this.currentTemp,
+          'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
+          'zoneDeviceControlId': controlModel.zoneDeviceControlId };
+
+        this.$emit('sendsocketobj', obj);
+      }
     },
     plusTempButtonClick: function plusTempButtonClick() {
-      this.currentTemp = (parseFloat(this.currentTemp) + 0.5).toFixed(1);
+      if (!this.deviceDataModel.isDeviceOn) return;
+      var controlModel = this.deviceControlModel(40);
+      if (parseFloat(this.currentTemp) < controlModel.maxValue) {
+        this.currentTemp = (parseFloat(this.currentTemp) + 0.5).toFixed(1);
+        var obj = {
+          'value': this.currentTemp,
+          'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
+          'zoneDeviceControlId': controlModel.zoneDeviceControlId };
+
+        this.$emit('sendsocketobj', obj);
+      }
+    },
+    windButtonClick: function windButtonClick(leave) {
+      if (!this.deviceDataModel.isDeviceOn) return;
+      if (leave === 'l1' && this.deviceDataModel.isLow) return;
+      if (leave === 'l2' && this.deviceDataModel.isMid) return;
+      if (leave === 'l3' && this.deviceDataModel.isHigh) return;
+      var controlModel = this.deviceControlModel(30);
+      var obj = {
+        'value': leave,
+        'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
+        'zoneDeviceControlId': controlModel.zoneDeviceControlId };
+
+      this.$emit('sendsocketobj', obj);
     },
     deviceControlModel: function deviceControlModel(tag) {
       var controlModel = this.deviceDataModel.device.controls.filter(function (control) {return control.tag == tag;})[0];
       if (controlModel) {
         return controlModel;
       }
-      return new DeviceControlModel();
+      return null;
     } } };exports.default = _default;
 
 /***/ }),

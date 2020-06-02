@@ -476,7 +476,7 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
             if (_this4.currentDeviceDataModel && _this4.currentDeviceDataModel.device.zoneDeviceId === deviceModel.zoneDeviceId) {
               _this4.currentDeviceDataModel = deviceDataModel;
             }
-            console.log(socketModel);
+            // console.log(socketModel);
           }
         }
       });
@@ -507,14 +507,7 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
     popUpClose: function popUpClose() {
       this.showPop = false;
     },
-    deviceItemClick: function deviceItemClick(obj) {
-      var socketObj = _objectSpread({
-        'spaceId': this.currentRoomValue },
-      obj);
-
-      this.sendSocket(socketObj);
-    },
-    dimmerValueChange: function dimmerValueChange(obj) {
+    sendSocketObj: function sendSocketObj(obj) {
       var socketObj = _objectSpread({
         'spaceId': this.currentRoomValue },
       obj);
@@ -522,6 +515,7 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
       this.sendSocket(socketObj);
     },
     sendSocket: function sendSocket(socketObj) {var _this6 = this;
+      console.log(socketObj);
       return new Promise(function (resolve, reject) {
         // 震动
         uni.vibrateShort();
@@ -752,14 +746,14 @@ var _default = { data: function data() {return { sliderValue: 0, isDrag: false, 
         'zoneDeviceId': this.deviceDataModel.device.zoneDeviceId,
         'zoneDeviceControlId': controlId };
 
-      this.$emit('dimmervaluechange', obj);
+      this.$emit('sendsocketobj', obj);
     },
     deviceControlModel: function deviceControlModel(tag) {
       var controlModel = this.deviceDataModel.device.controls.filter(function (control) {return control.tag == tag;})[0];
       if (controlModel) {
         return controlModel;
       }
-      return new DeviceControlModel();
+      return null;
     } } };exports.default = _default;
 
 /***/ }),
