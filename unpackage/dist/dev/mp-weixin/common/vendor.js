@@ -8902,6 +8902,10 @@ DeviceDataModel = /*#__PURE__*/function () {
       this.aqi = '--';
       this.co2 = '--';
       this.pm25 = '--';
+      // 窗帘
+      this.isOpen = false;
+      this.isPause = false;
+      this.isClose = false;
 
       switch (device.typeC) {
         // 单开关
@@ -8939,9 +8943,9 @@ DeviceDataModel = /*#__PURE__*/function () {
           var pauseControlModel = this.deviceControlModel(20);
           var closeControlModel = this.deviceControlModel(30);
 
-          var isOpen = openControlModel.value;
-          var isPause = pauseControlModel.value;
-          var isClose = closeControlModel.value;
+          var isOpen = openControlModel.value === 'true';
+          var isPause = pauseControlModel.value === 'true';
+          var isClose = closeControlModel.value === 'true';
 
           if (isOpen || isClose || isPause) {
             this.isDeviceOn = true;
@@ -8950,6 +8954,9 @@ DeviceDataModel = /*#__PURE__*/function () {
           }
           this.deviceShowTitle = ' ';
           this.showDeviceSwitchColor = false;
+          this.isOpen = isOpen;
+          this.isPause = isPause;
+          this.isClose = isClose;
           break;
         // 空调
         case 'airconditionercontrol':

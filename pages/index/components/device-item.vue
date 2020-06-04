@@ -45,6 +45,12 @@
 		},
 		methods: {
 			deviceItemClick() {
+				// 窗帘默认是打开 设置
+				if (this.deviceDataModel.device.typeC === 'curtaincontrol') {
+					this.settingButtonClick()
+					return
+				}
+				
 				let controlId = this.deviceControlModel(10).zoneDeviceControlId
 				if (this.deviceDataModel.device.typeC === 'airpurifiercontrol' && this.deviceDataModel.device.version === 1) {
 					controlId = this.deviceControlModel(40).zoneDeviceControlId	

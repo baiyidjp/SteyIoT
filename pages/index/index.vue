@@ -42,9 +42,9 @@
 					<device-air-purifier-setting v-if="deviceType.isAirPurification" :deviceDataModel="currentDeviceDataModel" @sendsocketobj="sendSocketObj"></device-air-purifier-setting>
 				</view>
 				<view class="pop-bottom">
-					<image class="switch-button" :src="switchImage" mode="" @click="switchButtonClick"></image>
+					<image v-if="showSwitchImage" class="switch-button" :src="switchImage" mode="" @click="switchButtonClick"></image>
 					<view class="device-name">{{ deviceName }}</view>
-					<view class="switch-state">{{ switchState }}</view>
+					<view v-if="showSwitchImage" class="switch-state">{{ switchState }}</view>
 				</view>
 			</view>
 		</van-popup>
@@ -164,6 +164,12 @@
 					}
 				} 
 				return ''
+			},
+			showSwitchImage() {
+				if (this.currentDeviceDataModel) {
+					return this.currentDeviceDataModel.device.typeC !== 'curtaincontrol'
+				}
+				return false
 			},
 			switchImage() {
 				if (this.currentDeviceDataModel) {

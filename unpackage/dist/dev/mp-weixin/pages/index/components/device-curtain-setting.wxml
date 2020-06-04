@@ -1,1 +1,1 @@
-<view class="_div"></view>
+<view class="curtain-container"><view data-event-opts="{{[['tap',[['openButtonClick',['$event']]]]]}}" class="{{['item',isOpen?'item-active':'item-normal']}}" bindtap="__e">开</view><view data-event-opts="{{[['tap',[['pauseButtonClick',['$event']]]]]}}" class="{{['item pause-container',isPause?'item-active':'item-normal']}}" bindtap="__e">暂停</view><view data-event-opts="{{[['tap',[['closeButtonClick',['$event']]]]]}}" class="{{['item',isClose?'item-active':'item-normal']}}" bindtap="__e">关</view></view>

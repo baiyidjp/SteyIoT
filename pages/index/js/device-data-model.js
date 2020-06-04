@@ -27,6 +27,10 @@ class DeviceDataModel {
 		this.aqi = '--'
 		this.co2 = '--'
 		this.pm25 = '--'
+		// 窗帘
+		this.isOpen = false
+		this.isPause= false
+		this.isClose = false
 		
 		switch (device.typeC) {
 			// 单开关
@@ -63,10 +67,10 @@ class DeviceDataModel {
 			const openControlModel = this.deviceControlModel(10)
 			const pauseControlModel = this.deviceControlModel(20)
 			const closeControlModel = this.deviceControlModel(30)
-		
-			const isOpen = openControlModel.value
-			const isPause = pauseControlModel.value
-			const isClose = closeControlModel.value
+			
+			const isOpen = (openControlModel.value === 'true')
+			const isPause = (pauseControlModel.value === 'true')
+			const isClose = (closeControlModel.value === 'true')
 		
 			if (isOpen || isClose || isPause) {
 					this.isDeviceOn = true
@@ -75,6 +79,9 @@ class DeviceDataModel {
 			}
 			this.deviceShowTitle = ' '
 			this.showDeviceSwitchColor = false
+			this.isOpen = isOpen
+			this.isPause = isPause
+			this.isClose = isClose
 			break;
 			// 空调
 			case 'airconditionercontrol':

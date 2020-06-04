@@ -161,6 +161,12 @@ var _default = { data: function data() {return {};}, props: { deviceDataModel: n
 
   methods: {
     deviceItemClick: function deviceItemClick() {
+      // 窗帘默认是打开 设置
+      if (this.deviceDataModel.device.typeC === 'curtaincontrol') {
+        this.settingButtonClick();
+        return;
+      }
+
       var controlId = this.deviceControlModel(10).zoneDeviceControlId;
       if (this.deviceDataModel.device.typeC === 'airpurifiercontrol' && this.deviceDataModel.device.version === 1) {
         controlId = this.deviceControlModel(40).zoneDeviceControlId;
