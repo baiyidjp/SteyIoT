@@ -188,9 +188,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-
 var _vuex = __webpack_require__(/*! vuex */ 12);
 var _spaceModel = _interopRequireDefault(__webpack_require__(/*! ./js/space-model.js */ 19));
 var _roomZone = _interopRequireDefault(__webpack_require__(/*! ./js/room-zone.js */ 20));
@@ -242,8 +239,9 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
     });
     // 获取房间
     if (this.isLogin) {
-      console.log(this.isLogin);
       this.requestAccessibleSpaces();
+    } else {
+      this.gotoLoginPage();
     }
     // websocket 回调
     uni.onSocketOpen(function () {
@@ -331,9 +329,33 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
 
   methods: _objectSpread({},
   (0, _vuex.mapMutations)(['logout']), {
-    loginButtonClick: function loginButtonClick() {
-      uni.navigateTo({
+    gotoLoginPage: function gotoLoginPage() {
+      console.log('toLogin');
+      this.logout();
+      uni.redirectTo({
         url: '../login/login' });
+
+    },
+    tokenInvaild: function tokenInvaild() {
+      this.gotoLoginPage();
+      uni.showToast({
+        icon: 'none',
+        title: '登录失效,重新登录',
+        duration: 2000 });
+
+    },
+    showErrorMessage: function showErrorMessage(error) {
+      uni.showToast({
+        icon: 'none',
+        title: error,
+        duration: 2000 });
+
+    },
+    showRequestFailed: function showRequestFailed() {
+      uni.showToast({
+        icon: 'none',
+        title: '网络请求失败',
+        duration: 2000 });
 
     },
     bookingButtonClick: function bookingButtonClick() {
@@ -341,6 +363,9 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
       uni.navigateTo({
         url: "../web/web-view?url=".concat(url) });
 
+    },
+    changeAccountButtonClick: function changeAccountButtonClick() {
+      this.gotoLoginPage();
     },
     tapCurrentRoom: function tapCurrentRoom(event) {
       this.currentRoomValue = event.detail;
@@ -362,26 +387,16 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
           if (res.statusCode == 200) {
             _this2.handleAccessibleSpaces(res.data.data);
           } else if (res.statusCode == 401) {
-            console.log('token失效');
-            _this2.logout();
-            _this2.loginTip = '登录失效';
+            _this2.tokenInvaild();
           } else {
             var error = res.data.error;
             if (error) {
-              uni.showToast({
-                icon: 'none',
-                title: error,
-                duration: 2000 });
-
+              _this2.showErrorMessage();
             }
           }
         },
         fail: function fail() {
-          uni.showToast({
-            icon: 'none',
-            title: '网络请求失败',
-            duration: 2000 });
-
+          _this2.showRequestFailed();
         },
         complete: function complete() {
           _this2.isRequestSpacesDone = true;
@@ -397,13 +412,6 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
           return obj;
         });
         this.requestIoTTemplate();
-      } else {
-        this.currentRoomValue = 138;
-        this.roomNameValues = [
-        { text: '520', value: 138 },
-        { text: '521', value: 142 }];
-
-        this.requestIoTTemplate();
       }
     },
     requestIoTTemplate: function requestIoTTemplate() {var _this3 = this;
@@ -413,7 +421,7 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
           mask: true });
 
         uni.request({
-          url: "https://gateway.stey.com/iot-service/staff-app/iot/template/".concat(this.currentRoomValue),
+          url: "https://gateway.stey.com/iot-service/app/iot/template/".concat(this.currentRoomValue),
           method: 'GET',
           data: {},
           header: {
@@ -426,26 +434,16 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
             if (res.statusCode == 200) {
               _this3.handleTemplate(res.data.data.zones);
             } else if (res.statusCode == 401) {
-              console.log('token失效');
-              _this3.logout();
-              _this3.loginTip = '登录失效';
+              _this3.tokenInvaild();
             } else {
               var error = res.data.error;
               if (error) {
-                uni.showToast({
-                  icon: 'none',
-                  title: error,
-                  duration: 2000 });
-
+                _this3.showErrorMessage();
               }
             }
           },
           fail: function fail() {
-            uni.showToast({
-              icon: 'none',
-              title: '网络请求失败',
-              duration: 2000 });
-
+            _this3.showRequestFailed();
           },
           complete: function complete() {
             uni.hideLoading();
@@ -530,7 +528,7 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
           mask: true });
 
         uni.request({
-          url: 'https://gateway.stey.com/iot-service/staff-app/iot/run-command',
+          url: 'https://gateway.stey.com/iot-service/app/iot/run-command',
           method: 'POST',
           data: {
             data: socketObj,
@@ -545,26 +543,16 @@ var _deviceDimmerSetting = _interopRequireDefault(__webpack_require__(/*! ./comp
             if (res.statusCode == 200) {
               resolve(res);
             } else if (res.statusCode == 401) {
-              console.log('token失效');
-              _this6.logout();
-              _this6.loginTip = '登录失效';
+              _this6.tokenInvaild();
             } else {
               var error = res.data.error;
               if (error) {
-                uni.showToast({
-                  icon: 'none',
-                  title: error,
-                  duration: 2000 });
-
+                _this6.showErrorMessage();
               }
             }
           },
           fail: function fail() {
-            uni.showToast({
-              icon: 'none',
-              title: '网络请求失败',
-              duration: 2000 });
-
+            _this6.showRequestFailed();
           },
           complete: function complete() {
             uni.hideLoading();

@@ -4,7 +4,7 @@
 			<view class="code-container">
 				<view class="code" @click="nationCodeClick">
 					<uni-icons type="plusempty" size="12" color="#5B5B5B"></uni-icons>
-					<text class="codeText">{{ nationCode }}</text>
+					<text class="codeText">+ {{ nationCode }}</text>
 				</view>
 				<uni-icons type="arrowdown" color="#5B5B5B" size="10"></uni-icons>
 				<view class="line"></view>
@@ -201,7 +201,9 @@
 								title: '登录成功',
 								duration: 2000
 							});
-							uni.navigateBack()
+							uni.redirectTo({
+								url: '../index/index'
+							})()
 						} else {
 							const error = res.data.error
 							if (error) {

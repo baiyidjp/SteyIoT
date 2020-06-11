@@ -21,12 +21,9 @@
 			<view v-else v-show="isRequestSpacesDone" class="login-container">
 				<view>暂无订单</view>
 				<view class="login-button" @click="bookingButtonClick">点我预定</view>
+				<view class="login-button" @click="changeAccountButtonClick">切换账号</view>
 			</view>
 		</block>
-		<view v-else class="login-container">
-			<view>{{ loginTip }}</view>
-			<view class="login-button" @click="loginButtonClick">点我登录</view>
-		</view>
 		<van-popup :show="showPop">
 			<view class="pop-back">
 				<view class="pop-top">
@@ -103,8 +100,9 @@
 			})
 			// 获取房间
 			if (this.isLogin) {
-				console.log(this.isLogin);
 				this.requestAccessibleSpaces()
+			} else {
+				this.gotoLoginPage()
 			}
 			// websocket 回调
 			uni.onSocketOpen(() => {
@@ -192,9 +190,33 @@
 		},
 		methods: {
 			...mapMutations(['logout']),
-			loginButtonClick() {
-				uni.navigateTo({
+			gotoLoginPage() {
+				console.log('toLogin');
+				this.logout()
+				uni.redirectTo({
 					url:'../login/login'
+				})
+			},
+			tokenInvaild() {
+				this.gotoLoginPage()
+				uni.showToast({
+					icon: 'none',
+					title: '登录失效,重新登录',
+					duration: 2000
+				});
+			},
+			showErrorMessage(error) {
+				uni.showToast({
+					icon: 'none',
+					title: error,
+					duration: 2000
+				});
+			},
+			showRequestFailed() {
+				uni.showToast({
+					icon: 'none',
+					title: '网络请求失败',
+					duration: 2000
 				})
 			},
 			bookingButtonClick() {
@@ -202,6 +224,9 @@
 				uni.navigateTo({
 					url: `../web/web-view?url=${url}`
 				})
+			},
+			changeAccountButtonClick() {
+				this.gotoLoginPage()
 			},
 			tapCurrentRoom(event) {
 				this.currentRoomValue = event.detail
@@ -223,26 +248,16 @@
 						if (res.statusCode == 200) {
 							this.handleAccessibleSpaces(res.data.data)
 						} else if (res.statusCode == 401) {
-							console.log('token失效')
-							this.logout()
-							this.loginTip = '登录失效'
+							this.tokenInvaild()
 						} else {
 							const error = res.data.error
 							if (error) {
-								uni.showToast({
-									icon: 'none',
-									title: error,
-									duration: 2000
-								});
+								this.showErrorMessage()
 							}
 						}
 					},
 					fail: () => {
-						uni.showToast({
-							icon: 'none',
-							title: '网络请求失败',
-							duration: 2000
-						})
+						this.showRequestFailed()
 					},
 					complete: () => {
 						this.isRequestSpacesDone = true
@@ -258,13 +273,6 @@
 						return obj
 					})
 					this.requestIoTTemplate()
-				} else {
-					this.currentRoomValue = 138
-					this.roomNameValues = [
-						{text: '520', value: 138},
-						{text: '521', value: 142}
-					]
-					this.requestIoTTemplate()
 				}
 			},
 			requestIoTTemplate() {
@@ -274,7 +282,7 @@
 						mask: true
 					})
 					uni.request({
-						url: `https://gateway.stey.com/iot-service/staff-app/iot/template/${this.currentRoomValue}`,
+						url: `https://gateway.stey.com/iot-service/app/iot/template/${this.currentRoomValue}`,
 						method: 'GET',
 						data: {},
 						header: {
@@ -287,26 +295,16 @@
 							if (res.statusCode == 200) {
 								this.handleTemplate(res.data.data.zones)
 							} else if (res.statusCode == 401) {
-								console.log('token失效')
-								this.logout()
-								this.loginTip = '登录失效'
+								this.tokenInvaild()
 							} else {
 								const error = res.data.error
 								if (error) {
-									uni.showToast({
-										icon: 'none',
-										title: error,
-										duration: 2000
-									});
+									this.showErrorMessage()
 								}
 							}
 						},
 						fail: () => {
-							uni.showToast({
-								icon: 'none',
-								title: '网络请求失败',
-								duration: 2000
-							})
+							this.showRequestFailed()
 						},
 						complete() {
 							uni.hideLoading()
@@ -391,7 +389,7 @@
 						mask: true
 					})
 					uni.request({
-						url: 'https://gateway.stey.com/iot-service/staff-app/iot/run-command',
+						url: 'https://gateway.stey.com/iot-service/app/iot/run-command',
 						method: 'POST',
 						data: {
 							data: socketObj,
@@ -406,26 +404,16 @@
 							if (res.statusCode == 200) {
 								resolve(res)
 							} else if (res.statusCode == 401) {
-								console.log('token失效')
-								this.logout()
-								this.loginTip = '登录失效'
+								this.tokenInvaild()
 							} else {
 								const error = res.data.error
 								if (error) {
-									uni.showToast({
-										icon: 'none',
-										title: error,
-										duration: 2000
-									});
+									this.showErrorMessage()
 								}
 							}
 						},
 						fail: () => {
-							uni.showToast({
-								icon: 'none',
-								title: '网络请求失败',
-								duration: 2000
-							})
+							this.showRequestFailed()
 						},
 						complete() {
 							uni.hideLoading()

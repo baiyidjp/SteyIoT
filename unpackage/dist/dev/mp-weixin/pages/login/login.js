@@ -333,7 +333,9 @@ var _vuex = __webpack_require__(/*! vuex */ 12);function ownKeys(object, enumera
               title: '登录成功',
               duration: 2000 });
 
-            uni.navigateBack();
+            uni.redirectTo({
+              url: '../index/index' })();
+
           } else {
             var error = res.data.error;
             if (error) {
